@@ -11,6 +11,4 @@ git remote add --track master upstream git@github.com:ucd-nlmsc-teamproject/Code
 git remote -v 
 git remote set-url --push upstream DISABLED 
 git remote -v 
-git remote set-url --push upstream DISABLED
-git remote -v
 ```
