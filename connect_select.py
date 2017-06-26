@@ -1,3 +1,4 @@
+# %load connect_select.py
 #!/usr/bin/python
 import psycopg2
 import sys
@@ -22,8 +23,8 @@ def main():
     #the_frame = pdsql.read_frame("SELECT * FROM %s;" % backend_article, conn)
     df = sql.read_sql("SELECT * FROM backend_article;", conn)
 #    print(the_frame)
-    df.describe()
-
+    #print(df)
+    #print(df[source[5]])
 
  
     # retrieve the records from the database
@@ -33,7 +34,7 @@ def main():
     # note that the NAMES of the columns are not shown, instead just indexes.
     # for most people this isn't very useful so we'll show you how to return
     # columns as a dictionary (hash) in the next example.
-    #pprint.pprint(records)
+    pprint.pprint(records)
  
 if __name__ == "__main__":
     main()
