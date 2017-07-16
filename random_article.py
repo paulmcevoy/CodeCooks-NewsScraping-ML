@@ -4,39 +4,11 @@
 # In[ ]:
 
 
-#!/usr/bin/python
-import psycopg2
-import sys
-import pprint
 from datetime import datetime
-
-import pandas.io.sql as sql
 import pandas as pd
+from get_table_data import get_table_data
 
-def get_entities():
-    conn_string = "host='localhost' dbname='newsapp' user='postgres' password='postgres'"
-    print ("Connecting to database\n    ->%s" % (conn_string))
-    conn = psycopg2.connect(conn_string)
-    cursor = conn.cursor()
-    df_table = sql.read_sql("SELECT backend_article.uniqueid, backend_article.publishedat, backend_article.url, backend_article.source, backend_sentiment.score, backend_article.text FROM backend_article INNER JOIN backend_sentiment ON backend_article.uniqueid = backend_sentiment.article;", conn)  
-    print("Got df_table")
-    df_ent_table = sql.read_sql("""SELECT backend_entities.article, backend_article.publishedat, backend_article.source, backend_entities.name, backend_entities.score, backend_article.url, backend_article.text FROM backend_entities
-INNER JOIN backend_article
-ON backend_article.uniqueid = backend_entities.article;""", conn) 
-    print("Got df_ent_table")
-    print("Done with DB, number of articles: {}".format(len(df_table)))
-    return df_ent_table, df_table
-import csv
-
-
-
-
-# In[ ]:
-
-
-#tidy up
-
-df_ent_table, df_table = get_entities()
+df_table, df_ent_table = get_table_data()
 df_table["publishedat"] = [d.to_pydatetime().date() for d in df_table["publishedat"]]
 df_table["publishedat"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_table["publishedat"]]
 
@@ -48,29 +20,10 @@ df_ent_table["length"] = [len(text) for text in df_ent_table["text"]]
 
 #convert to csv
 df_ent_table.to_csv('df_ent_table.csv')
-df_table_short = df_table[['uniqueid', 'url', 'publishedat', 'length', 'source']]
-#df_ents_name_and_id = df_ents_name_and_id[df_ents_name_and_id.publishedat == '07_07_2017']
-
-
-#df_ents_full = df_ents_name_and_id[:500]
-#df_ents_full = df_ents_name_and_id
-
-#df_ents_name_and_id = df_ents_name_and_id
+df_table_short = df_table[['uniqueid', 'url', 'publishedat', 'length', 'source', 'text']]
 
 
 # In[ ]:
-
-
-df_table_short
-
-
-# In[ ]:
-
-
-
-
-
-# In[49]:
 
 
 import random
@@ -99,10 +52,6 @@ writer = pd.ExcelWriter('rand_articles.xlsx', engine='xlsxwriter')
 rand_articles.to_excel(writer, sheet_name='Sheet1')
 writer.save() 
 
-#for key1, value1 in df_ents_sim_dict.items():
-#    for key2, value2 in df_ents_sim_dict.items():
-#        print("{} {} {}\n".format(key1, key2, sim_num)   )
-
 df_table_short_id_rand
 #rand_articles
 
@@ -110,27 +59,33 @@ df_table_short_id_rand
 # In[ ]:
 
 
-df_table_short_id_rand
+from aylienapiclient import textapi
+c = textapi.Client("f40063af", "ddd790cf8730e5934f0a416f4ac44b2a")
+import json
+from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
+import nltk
+import re
+from nltk import tokenize
+tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+sid = SIA()
+df_table_date = df_table_short_id_rand
+df_table_date['aylien_polarity'] = 0
+df_table_date['cleaned_text'] = 0
+df_table_date['nltk_polarity'] = 0
+df_table_date['resp'] = 0
 
+for index, row in df_table_date.iterrows():
+    df_table_date.loc[index, 'cleaned_text'] = re.sub('\n','', row['text']) 
 
-# In[ ]:
-
-
-df_ents_full_temp = set(df_ents_full['publishedat'])
-
-df_ents_full_temp
-#len(df_ents_sim)
-#df_ents_sim
-
-set(df_table['publishedat'])
-
-#date_str =  df_table['publishedat'][0].strftime('%d-%m-%Y')
-#date_str
-
-
-# In[ ]:
-
-
-import os
-os.getcwd()
+for index, row in df_table_date.iterrows():
+    aresp = c.Sentiment({'text': row['cleaned_text']})
+    resp_val = aresp['polarity']
+    df_table_date.loc[index, 'aylien_polarity'] = resp_val
+    lines_list = tokenizer.tokenize(row['cleaned_text'])
+    for sentence in lines_list:
+        ss = sid.polarity_scores(sentence)
+    df_table_date.loc[index, 'nltk_polarity'] = ss['compound']
+    
+df_short =  df_table_date.loc[:,['uniqueid','url','score','aylien_polarity', 'nltk_polarity']]
+df_short.to_csv('df_short.csv')
 
