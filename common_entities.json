@@ -1,0 +1,49 @@
+{
+
+"Trump": ["Donald Trump", "President Trump", "President Donald Trump", "Donald Trump", "The Donald", "Trump Organisation", "Trump Organization", "Mr Trump", "Mr. Trump", "Donald J Trump", "Donald John Trump", "POTUS"],
+
+"Donald Trump Jr": ["Donald Trump Jr.", "Mr Trump Jr", "Mr Trump Jr.", "Donald J Trump Jr", "Donald J. Trump Jr."], 
+
+"Melania": ["Lady Melania Trump", "Melania Trump", "FLOTUS"],
+
+"Ivanka": ["Ivanka Trump"],
+
+"Trump administration": ["Trump Administration"],
+
+"USA": ["US", "U.S.", "U.S.A", "United States", "United States of America"],	
+
+"UK": ["United Kingdom", "U.K.", "Britain", "Great Britain", "GB", "G.B."],
+
+"EU": ["European Union", "The European Union"],
+
+"Prime Minister": ["prime minister"],
+
+"Islamic State": ["IS", "ISIS", "ISIL", "Isis", "Isil", "Daesh", "Islamic State of Iraq and the Levant", "Islamic State of Iraq and Syria"],
+
+"Putin": ["Vladimir Putin", "President Putin", "President Vladimir Putin", "President Vladimir V. Putin", "Russian President Vladimir Putin", "Vladimir V. Putin", "Mr Putin", "Mr. Putin"],
+
+"Theresa May": ["Prime Minister Theresa May", "Mrs May", "Theresa May."],
+
+"Jeremy Corbyn": ["Corbyn", "Mr Corbyn"],
+
+"Government": ["government"],
+
+"Angela Merkel": ["Merkel", "Chancellor Merkel", "Chancellor Angela Merkel", "Mrs Merkel", "Mrs. Merkel", "German Chancellor Angela Merkel"],
+
+"Chancellor": ["chancellor"],
+
+"Emmanuel Macron": ["President Emmanuel Macron", "President Macron", "Macron"],
+
+"Obama": ["Barack Obama", "President Barack Obama", "President Obama", "Mr Obama", "Mr. Obama", "Ex-President Barack Obama"],
+
+"The Fed": ["Fed", "Federal Reserve"],
+
+"Conservative Party": ["Tories", "the Tories", "Conservative party"],
+
+"British Parliament": ["House of Commons"],
+
+"Bashar Assad": ["Syrian President Bashar al-Assad", "Syrian President Bashar Assad", "President Bashar al-Assad", "President Bashar Assad", "President al-Assad", "President Assad", "Bashar al-Assad", "Assad"], 
+
+"Syria": ["Syrian government", "Syrian army", "Syrian air force"]
+
+}
