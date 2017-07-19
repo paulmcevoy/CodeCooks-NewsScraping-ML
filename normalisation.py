@@ -21,15 +21,19 @@ def renameEntities(entities, common_entities):
     return(entities)            
 
 # Takes a list of entities as input.
-# If one entity name contains (or equals) another, then:
-# if the longer name is a key in common_entities, then keep both
-# otherwise: 
-#    keep one (the shorter, if different) and adjust the score (upwards) 
-#    for the entity kept. 
+# Remove enitities with duplicate names and adjust scores using the formula:
+#   old scores: x, y
+#   new score: 1 - (1-x)(1-y)
+# If one entity name contains (but doesn't equal) another, then:
+#   If the longer name is a key in common_entities is all upper case, 
+#       then keep both. 
+#   Otherwise: 
+#       keep the shorter one only and adjust its score. 
 #
 # Returns a list of entities, ordered from shortest to longest name with
 # no duplicates and no pair of entities where the name of one is contained in
-# the name of the other unless the other is a key of common_entities
+# the name of the other unless the other is a key of common_entities or all
+# upper case and different (i.e., possibly a different acronym)
 def removeDuplicateEntities(entities, common_entities):
     #print(entities)
     sorted_entities = sorted(entities, key=lambda x: len(x[0]))
@@ -40,8 +44,11 @@ def removeDuplicateEntities(entities, common_entities):
         for entity in sorted_entities:
             match = False
             for unique_entity in no_duplicate_entities:
-                if unique_entity[0] in entity[0] and (
-                (unique_entity[0] in common_entities.keys()) or 
+                if unique_entity[0] == entity[0]: 
+                    unique_entity[1] = (1-(1-entity[1])*(1-unique_entity[1]))
+                    match = True                  
+                elif unique_entity[0] in entity[0] and not (
+                entity[0].isupper()) and (                
                 not (entity[0] in common_entities.keys())):
                     unique_entity[1] = (1-(1-entity[1])*(1-unique_entity[1]))
                     match = True
