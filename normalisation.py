@@ -2,13 +2,15 @@
 """
 Created on Sun Jul 16 20:23:14 2017
 
-@author: Frank
+@author: Paul
 """
+
 from get_clean_table_data import get_clean_table_data
 import json
 import pandas as pd
-import psycopg2
+
 df_art_table, df_ent_table = get_clean_table_data()
+from get_conn_info import get_conn_info
 
 # Replaces the key in each (key, value) member of entities by a key in
 # common_entities if the entities key is a member of the values corresponding
@@ -19,8 +21,6 @@ def renameEntities(entities, common_entities):
             for key, value in common_entities.items():
                 if entity[0] in value:
                     entity[0] = key
-                    print(value, key)
-                    #print("Did rename on:\n{}\n".format(entity[0]) )
                     break
     return(entities)            
 
@@ -56,11 +56,9 @@ def removeDuplicateEntities(entities, common_entities):
                 not (entity[0] in common_entities.keys())):
                     unique_entity[1] = (1-(1-entity[1])*(1-unique_entity[1]))
                     match = True
-                    #print("Found duplicate of:\n{}\n{}\n".format(entity[0], unique_entity[0]) )
             if not (match):
                 no_duplicate_entities.append(entity)
-    #else:
-    #    print("sorted_entities is None")
+
     return(no_duplicate_entities)
  
 with open('common_entities.json', 'r') as f:
@@ -70,53 +68,58 @@ from collections import  defaultdict
 df_ents_current_dict = defaultdict(dict)
 df_ents_cut_current_article_dict = defaultdict(dict)
 df_ents_full = pd.DataFrame()
-
-df_ent_table_date = df_ent_table[(df_ent_table.publishedat == '15_07_2017') ]
-#df_ent_table_date = df_ent_table
+df_ents_current = pd.DataFrame()
+ 
+#df_ent_table_date = df_ent_table[(df_ent_table.publishedat == '15_07_2017') ]
+df_ent_table_date = df_ent_table
 
 df_ents_cut =  df_ent_table_date.loc[:,['article','score','name']]
 for article in df_ents_cut.article.unique():
+    #get it into a format that renameEntities and removeDuplicateEntities need
     df_ents_cut_current_article = df_ents_cut[(df_ents_cut.article == article) ]
     df_ents_cut_current_article_two = df_ents_cut_current_article.loc[:,['name', 'score']]
     entities = df_ents_cut_current_article_two.values.tolist()
 
     entities_rename = renameEntities(entities, common_entities)
     entities_rename_no_dups = removeDuplicateEntities(entities_rename, common_entities)
-    table = [[1 , 2], [3, 4]]
     df_ents = pd.DataFrame(entities_rename_no_dups)
-    #df = df.transpose()
     df_ents.columns = ['name', 'score']
     df_ents['article'] = article
     df_ents_full = df_ents_full.append(df_ents)
 
-#df_ents_data_set = set(df_ents_full['publishedat'])
-# Sample Data. To do: replace sample data with iteration through each 
-# article in the DB; read entities; and write back after processing with
-# renameEntities and removeDuplicateEntities.
 #entities = [["President Trump",0.5], ["Mr Jones",0.4], ["Donald Trump",0.5], 
 #            [u"Jones",0.4], ["Jones",0.4], ["Merkel",0.4], 
 #            ["Chancellor Merkel",0.4], ["Angela",0.4]]
 
-#insert into backend_entitiesnormalized (article,name,score) values (‘1010917238’,‘Trump’,‘0.80’);
+df_art_total =  df_art_table.loc[:,['uniqueid','entitynormalized']]
+df_art_ent = df_art_total[df_art_total.entitynormalized == False]
 
-conn_string = "host='codecooks.ftp.sh' dbname='newsapp' user='postgres' password='codepostgrescook'"
-print ("Connecting to database\n    ->%s" % (conn_string))
-conn = psycopg2.connect(conn_string)
-cursor = conn.cursor()
+conn, cursor = get_conn_info()
+#df_art_ent = df_art_ent[:50]
+loop_count = 0
+total_articles = len(df_art_ent)
+articles_normed = 0
+for index, row in df_art_ent.iterrows():
+    article = row['uniqueid']
+    if(loop_count%100 == 0):
+        print("{} of {} articles processed".format(loop_count, total_articles))
+    df_ents_current = df_ents_full[df_ents_full.article == article]
 
-df_ents_full_short = df_ents_full[:20]
-for index, row in df_ents_full_short.iterrows():
-    #print(row['sumanalyzed'])
-    #if(row['sumanalyzed']):
-    #this means we have already sum'd it       
-    #    print("Already analysed article {}".format(uniqueid))
-    #    continue
-    #else:
-    article = row['article']
-    name = row['name'] 
-    score = row['score'] 
+    for index, ent_row in df_ents_current.iterrows():
+        name = ent_row['name'] 
+        score = ent_row['score'] 
+        #print("Normalising article {} ent {} score {}".format(article, name, score))
+        cursor.execute("INSERT INTO backend_entitiesnormalized (article, name, score) VALUES (%s, %s, %s)", (article, name, score))
+    cursor.execute(" update backend_article set entitynormalized = (%s) where uniqueid =  (%s) ;", (True, article,))
+    articles_normed+=1
+    loop_count+=1
 
-    cursor.execute("INSERT INTO backend_entitiesnormalized (article, name, score) VALUES (%s, %s, %s)", (article, name, score))
-    
+print("{} articles nomalised".format(articles_normed))
+        
 conn.commit()
 cursor.close()
+
+#    if(row['entitynormalized']):
+#        #print("Already normalised article {}".format(article))
+#        continue
+#    else:
