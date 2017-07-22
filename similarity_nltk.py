@@ -8,6 +8,7 @@ import pandas as pd
 import nltk 
 import json
 from get_clean_table_data import get_clean_table_data
+from get_conn_info import get_conn_info
 def extract_entity_names(t):
     entity_names = []
 
@@ -60,11 +61,16 @@ df_ents_data_set = set(df_ent_table_date['publishedat'])
 df_art_titles =  df_ent_table_date.loc[:,['uniqueid','title','publishedat']]
 
 #df_art_titles = df_art_titles[:200]
-
+from collections import Counter
 from collections import  defaultdict
 df_ents_sim_dict = defaultdict(dict)
+ents_top_dict = defaultdict(dict)
 df_ents_sim = pd.DataFrame([])
+#df_art_ent = df_art_total[df_art_total.entitynormalized == False]
+
 for date in df_ents_data_set:
+    sim_each_list = []
+    each_ent_list = []
     df_art_titles_date = df_art_titles[df_art_titles.publishedat == date]
     ents_dict = defaultdict(dict)
 
@@ -86,6 +92,8 @@ for date in df_ents_data_set:
         uniqueid = row['uniqueid']
         if len(entities_rename_no_dups) != 0:
             ents_dict[uniqueid]= entities_rename_no_dups
+            for each_ent in entities_rename_no_dups:
+                each_ent_list.append(each_ent)   
     
     for key1, value1 in ents_dict.items():
         for key2, value2 in ents_dict.items():
@@ -95,3 +103,49 @@ for date in df_ents_data_set:
                 print(sim_num, sim_vals)
                 df_ents_sim_dict[key1][key2] = sim_num
                 df_ents_sim = df_ents_sim.append(pd.DataFrame({'article1': key1, 'article2': key2, 'sim_count': sim_num, 'entities': sim_vals}, index=[0]), ignore_index=True)
+                for sim_each in sim_vals:
+                    sim_each_list.append(sim_each)    
+                    
+    ent_id_most_common_dict = defaultdict(dict)                
+    ents_count = Counter(each_ent_list)
+    ents_count_most_common = ents_count.most_common(10)
+    most_common_list = [i[0] for i in ents_count_most_common]
+    #for ent in most_common_list:
+    for idx, ent in enumerate(most_common_list):
+        ent_id_most_common_dict[ent] = idx +1
+        
+    ents_top_dict = defaultdict(dict)
+    ents_id_dict = defaultdict(dict)
+
+    for each_top_ent in reversed(most_common_list):
+        print("Doing ent {}".format(each_top_ent))
+        for article, article_ents in ents_dict.items():
+            print("Doing article {}".format(article))
+            if each_top_ent in article_ents:
+                print(article, article_ents, each_top_ent)
+                ents_top_dict[article] = each_top_ent
+
+    for art, ent in ents_top_dict.items():
+        ents_id_dict[art] = ent_id_most_common_dict[ent]
+
+    conn, cursor = get_conn_info()
+     
+    
+    loop_count = 0
+    total_articles = len(df_art_titles_date)
+    articles_grouped = 0
+    for article, id_val in ents_id_dict.items():
+    #for index, row in df_art_titles_date.iterrows():
+
+        print(article)
+        if(loop_count%100 == 0):
+            print("{} of {} articles grouped".format(loop_count, total_articles))
+        #df_ents_current = df_ents_full[df_ents_full.article == article]
+            #print("Normalising article {} ent {} score {}".format(article, name, score))
+        cursor.execute(" update backend_article set similaritygroupid = (%s) where uniqueid =  (%s) ;", (id_val , article,))
+        articles_grouped+=1
+        loop_count+=1
+    
+    print("{} articles grouped".format(articles_grouped))
+    conn.commit()
+    cursor.close()
