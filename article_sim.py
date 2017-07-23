@@ -1,14 +1,17 @@
 import pandas as pd
 from get_clean_table_data import get_clean_table_data
-#from create_xls_csv import create_xls_csv
 from collections import Counter
 df_art_table, df_ent_table = get_clean_table_data()
+from csv_info import *
+#df3.to_csv(os.path.join(csv_path,r'df3' + date1+ '.csv'))
 
 df_art_snip = df_art_table[:50]
 df_ent_snip = df_ent_table[:50]
 
 #df_ents_cut = df_table[['article', 'name', 'url', 'publishedat', 'length', 'source']]
-df_ent_table_date = df_ent_table[(df_ent_table.publishedat == '15_07_2017') | (df_ent_table.publishedat == '14_07_2017') | (df_ent_table.publishedat == '13_07_2017') | (df_ent_table.publishedat == '12_07_2017') | (df_ent_table.publishedat == '11_07_2017')]
+#df_ent_table_date = df_ent_table[(df_ent_table.publishedat == '15_07_2017') | (df_ent_table.publishedat == '14_07_2017') | (df_ent_table.publishedat == '13_07_2017') | (df_ent_table.publishedat == '12_07_2017') | (df_ent_table.publishedat == '11_07_2017')]
+df_ent_table_date = df_ent_table[(df_ent_table.publishedat == '19_07_2017') | (df_ent_table.publishedat == '18_07_2017') | (df_ent_table.publishedat == '17_07_2017') ]
+
 df_art_table_date = df_art_table[df_art_table.publishedat == '05_07_2017']
 
 df_ents_full = df_ent_table_date
@@ -77,9 +80,6 @@ for date in df_ents_data_set:
                 #print("Found match!\n UniqueID {}\n Ent {}\n List {}\n".format(article, ent, df_ents_current_dict[article]))
                 article_bin_table.loc[article][ent] = True
                 
-    df_ents_sim.to_csv('df_ents_sim_%s.csv' % date)
-    top_ents_adj.to_csv('top_ents%s.csv' % date)
-    #ent_slice_score_df.to_csv('ent_slice_score_df%s.csv' % date)
     article_bin_table_keep = article_bin_table.loc[(article_bin_table != False).any(axis=1),:]
     article_bin_table_keep['sum'] = article_bin_table.sum(axis=1)
     
@@ -93,7 +93,6 @@ for date in df_ents_data_set:
         for key, value in df_ents_current_dict.items():
             writer.writerow([key, value])
 
-    import numpy as np
     from kmodes import kmodes
     from sklearn.metrics import jaccard_similarity_score
     from sklearn.metrics.pairwise import pairwise_distances

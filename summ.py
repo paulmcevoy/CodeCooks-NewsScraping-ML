@@ -11,7 +11,6 @@ from sumy.nlp.stemmers import Stemmer
 from sumy.utils import get_stop_words
 import pandas.io.sql as sql
 import pandas as pd
-#from create_xls_csv import create_xls_csv
 
 from get_conn_info import get_conn_info
 
@@ -45,24 +44,20 @@ df_url_table = sql.read_sql("SELECT backend_article.uniqueid, \
 
 df_url_table["publishedat"] = [d.to_pydatetime().date() for d in df_url_table["publishedat"]]
 df_url_table["publishedat"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_url_table["publishedat"]]
-#df_url_table = df_url_table[(df_url_table.publishedat == '15_07_2017') |\
-#                            (df_url_table.publishedat == '14_07_2017') |\
-#                            (df_url_table.publishedat == '13_07_2017') |\
-#                            (df_url_table.publishedat == '12_07_2017') |\
-#                            (df_url_table.publishedat == '11_07_2017') ]
 
+df_url_table = df_url_table[df_url_table.sumanalyzed == False]
+total_articles = len(df_url_table)
+loop_count = 0
 
 for index, row in df_url_table.iterrows():
+    if(loop_count%100 == 0):
+        print("{} of {} articles processed".format(loop_count, total_articles))
     uniqueid = row['uniqueid']
-    if(row['sumanalyzed']):
-        print("Already analysed article {}".format(uniqueid))
-        continue
-    else:
-        summary_val = get_summary(row['url']) 
-        print("new article to analyse {}".format(uniqueid))
-        cursor.execute(" update backend_article set summary = (%s) where uniqueid =  (%s) ;", (summary_val, uniqueid,))
-        cursor.execute(" update backend_article set sumanalyzed = (%s) where uniqueid =  (%s) ;", (True, uniqueid,))
-   
+    summary_val = get_summary(row['url']) 
+    cursor.execute(" update backend_article set summary = (%s) where uniqueid =  (%s) ;", (summary_val, uniqueid,))
+    cursor.execute(" update backend_article set sumanalyzed = (%s) where uniqueid =  (%s) ;", (True, uniqueid,))
+    loop_count+=1
+
 conn.commit()
 cursor.close()
 
