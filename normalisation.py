@@ -9,7 +9,7 @@ from get_clean_table_data import get_clean_table_data
 import json
 import pandas as pd
 
-df_art_table, df_ent_table = get_clean_table_data()
+df_art_table, df_ent_table, df_ent_table_norm = get_clean_table_data()
 from get_conn_info import get_conn_info
 
 # Replaces the key in each (key, value) member of entities by a key in
@@ -119,7 +119,3 @@ print("{} articles nomalised".format(articles_normed))
 conn.commit()
 cursor.close()
 
-#    if(row['entitynormalized']):
-#        #print("Already normalised article {}".format(article))
-#        continue
-#    else:

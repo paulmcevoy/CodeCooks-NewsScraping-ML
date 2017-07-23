@@ -33,8 +33,20 @@ def get_table_data():
                                 backend_entities\
                                 INNER JOIN backend_article \
                                 ON backend_article.uniqueid = backend_entities.article;", conn) 
+    df_ent_table_norm = sql.read_sql("SELECT backend_entitiesnormalized.article, \
+                                backend_article.publishedat, \
+                                backend_article.url, \
+                                backend_article.source, \
+                                backend_entitiesnormalized.score,  \
+                                backend_article.text, \
+                                backend_entitiesnormalized.name \
+                                FROM \
+                                backend_entitiesnormalized\
+                                INNER JOIN backend_article \
+                                ON backend_article.uniqueid = backend_entitiesnormalized.article;", conn)
+    
     print("Got df_ent_table")
     print("Done with DB, number of articles: {}".format(len(df_art_table)))
     cursor.close()
     conn.close()
-    return df_art_table, df_ent_table
+    return df_art_table, df_ent_table, df_ent_table_norm
