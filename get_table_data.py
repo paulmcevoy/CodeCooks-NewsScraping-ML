@@ -12,7 +12,11 @@ def get_table_data():
                                 backend_article.title, \
                                 backend_article.source, \
                                 backend_sentiment.watson_score, \
+                                backend_sentiment.nltk_combined_sentiment, \
                                 backend_article.entitynormalized, \
+                                backend_article.nltk_sentiment, \
+                                backend_article.aylien_sentiment, \
+                                backend_article.aylien_sentiment_adv, \
                                 backend_article.text \
                                 FROM \
                                 backend_article \
@@ -53,18 +57,20 @@ def get_table_data():
                             backend_article.sumanalyzed \
                             FROM backend_article;", conn)  
 
+
+
     print("Got df_url_table")
-    df_art_table["publishedat"] = [d.to_pydatetime().date() for d in df_art_table["publishedat"]]
-    df_art_table["publishedat"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_art_table["publishedat"]]
+    df_art_table["publishedatpy"] = [d.to_pydatetime().date() for d in df_art_table["publishedat"]]
+    df_art_table["publishedat"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_art_table["publishedatpy"]]
 
-    df_ent_table["publishedat"] = [d.to_pydatetime().date() for d in df_ent_table["publishedat"]]
-    df_ent_table["publishedat"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_ent_table["publishedat"]]
+    df_ent_table["publishedatpy"] = [d.to_pydatetime().date() for d in df_ent_table["publishedat"]]
+    df_ent_table["publishedat"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_ent_table["publishedatpy"]]
 
-    df_ent_table_norm["publishedat"] = [d.to_pydatetime().date() for d in df_ent_table_norm["publishedat"]]
-    df_ent_table_norm["publishedat"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_ent_table_norm["publishedat"]]
+    df_ent_table_norm["publishedatpy"] = [d.to_pydatetime().date() for d in df_ent_table_norm["publishedat"]]
+    df_ent_table_norm["publishedat"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_ent_table_norm["publishedatpy"]]
 
-    df_url_table["publishedat"] = [d.to_pydatetime().date() for d in df_url_table["publishedat"]]
-    df_url_table["publishedat"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_url_table["publishedat"]]
+    df_url_table["publishedatpy"] = [d.to_pydatetime().date() for d in df_url_table["publishedat"]]
+    df_url_table["publishedat"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_url_table["publishedatpy"]]
 
     df_art_table["length"] = [len(text) for text in df_art_table["text"]]
     df_ent_table["length"] = [len(text) for text in df_ent_table["text"]]
