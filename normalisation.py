@@ -70,8 +70,8 @@ df_ents_cut_current_article_dict = defaultdict(dict)
 df_ents_full = pd.DataFrame()
 df_ents_current = pd.DataFrame()
  
-df_ent_table_date = df_ent_table[(df_ent_table.publishedat == '15_07_2017') ]
-#df_ent_table_date = df_ent_table
+#df_ent_table_date = df_ent_table[(df_ent_table.publishedat == '15_07_2017') ]
+df_ent_table_date = df_ent_table
 
 df_ents_cut =  df_ent_table_date.loc[:,['article','score','name']]
 for article in df_ents_cut.article.unique():
