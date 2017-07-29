@@ -2,7 +2,7 @@
 #import nltk
 from __future__ import absolute_import
 from __future__ import division, print_function, unicode_literals
-
+import sumy
 from sumy.parsers.html import HtmlParser
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
@@ -27,39 +27,41 @@ def get_summary(link):
         summarizer = Summarizer(stemmer)
         summarizer.stop_words = get_stop_words("english")
         summary_str = ''
-        for sentence in summarizer(parser.document, 4):
-            #print(sentence)
+        for sentence in summarizer(parser.document, 5):
             summary_str+=str(sentence)
         return summary_str
     else:
         return ""
     
-conn, cursor = get_conn_info()
+from get_table_data import get_table_data
 
-df_url_table = sql.read_sql("SELECT backend_article.uniqueid, \
-                            backend_article.url, \
-                            backend_article.publishedat, \
-                            backend_article.sumanalyzed \
-                            FROM backend_article;", conn)  
+df_art_table, df_ent_table, df_ent_table_norm, df_url_table = get_table_data()
 
-df_url_table["publishedat"] = [d.to_pydatetime().date() for d in df_url_table["publishedat"]]
-df_url_table["publishedat"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_url_table["publishedat"]]
-
+#df_url_table = df_url_table[(df_url_table.publishedat == '15_07_2017') ]
+print(len(df_url_table))
 df_url_table = df_url_table[df_url_table.sumanalyzed == False]
+df_url_table_date_set = set(df_url_table['publishedat'])
+
+print(len(df_url_table))
 total_articles = len(df_url_table)
 loop_count = 0
+print("Starting summarisation")
+print(len(df_url_table))
+for date in df_url_table_date_set:
+    conn, cursor = get_conn_info()
+    df_url_table_one_day = df_url_table[(df_url_table.publishedat == date) ] 
+    
+    for index, row in df_url_table_one_day.iterrows():
+        if(loop_count%10 == 0):
+            print("{} of {} articles processed".format(loop_count, total_articles))
+        uniqueid = row['uniqueid']
+        summary_val = get_summary(row['url']) 
+        cursor.execute(" update backend_article set summary = (%s) where uniqueid =  (%s) ;", (summary_val, uniqueid,))
+        cursor.execute(" update backend_article set sumanalyzed = (%s) where uniqueid =  (%s) ;", (True, uniqueid,))
+        loop_count+=1
 
-for index, row in df_url_table.iterrows():
-    if(loop_count%100 == 0):
-        print("{} of {} articles processed".format(loop_count, total_articles))
-    uniqueid = row['uniqueid']
-    summary_val = get_summary(row['url']) 
-    cursor.execute(" update backend_article set summary = (%s) where uniqueid =  (%s) ;", (summary_val, uniqueid,))
-    cursor.execute(" update backend_article set sumanalyzed = (%s) where uniqueid =  (%s) ;", (True, uniqueid,))
-    loop_count+=1
-
-conn.commit()
-cursor.close()
+    conn.commit()
+    cursor.close()
 
 
 

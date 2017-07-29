@@ -7,7 +7,7 @@ Created on Thu Jul 20 16:58:42 2017
 import pandas as pd
 import nltk 
 import json
-from get_clean_table_data import get_clean_table_data
+from get_table_data import get_table_data
 from get_conn_info import get_conn_info
 def extract_entity_names(t):
     entity_names = []
@@ -54,9 +54,10 @@ def removeDuplicateEntitiesNoScore(entities, common_entities):
 with open('common_entities.json', 'r') as f:
     common_entities = json.load(f)
 
-df_art_table, df_ent_table, df_ent_table_norm = get_clean_table_data()
+df_art_table, df_ent_table, df_ent_table_norm, df_url_table = get_table_data()
 
-df_ent_table_date = df_art_table[(df_art_table.publishedat == '19_07_2017') | (df_art_table.publishedat == '18_07_2017') | (df_art_table.publishedat == '17_07_2017') ]
+#df_ent_table_date = df_art_table[(df_art_table.publishedat == '19_07_2017') | (df_art_table.publishedat == '18_07_2017') | (df_art_table.publishedat == '17_07_2017') ]
+df_ent_table_date = df_art_table
 df_ents_data_set = set(df_ent_table_date['publishedat'])
 df_art_titles =  df_ent_table_date.loc[:,['uniqueid','title','publishedat']]
 

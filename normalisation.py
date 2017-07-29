@@ -5,11 +5,11 @@ Created on Sun Jul 16 20:23:14 2017
 @author: Paul
 """
 
-from get_clean_table_data import get_clean_table_data
+from get_table_data import get_table_data
 import json
 import pandas as pd
 
-df_art_table, df_ent_table, df_ent_table_norm = get_clean_table_data()
+df_art_table, df_ent_table, df_ent_table_norm, get_url_table = get_table_data()
 from get_conn_info import get_conn_info
 
 # Replaces the key in each (key, value) member of entities by a key in
@@ -70,8 +70,8 @@ df_ents_cut_current_article_dict = defaultdict(dict)
 df_ents_full = pd.DataFrame()
 df_ents_current = pd.DataFrame()
  
-#df_ent_table_date = df_ent_table[(df_ent_table.publishedat == '15_07_2017') ]
-df_ent_table_date = df_ent_table
+df_ent_table_date = df_ent_table[(df_ent_table.publishedat == '15_07_2017') ]
+#df_ent_table_date = df_ent_table
 
 df_ents_cut =  df_ent_table_date.loc[:,['article','score','name']]
 for article in df_ents_cut.article.unique():
