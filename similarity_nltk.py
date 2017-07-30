@@ -127,7 +127,7 @@ for date in df_ents_data_set:
                 #print(article, article_ents, each_top_ent)
                 ents_top_dict[article] = each_top_ent
    
-    print("Most common entities for: {}\n{}".format(date, ents_count_most_common))
+    #print("Most common entities for: {}\n{}".format(date, ents_count_most_common))
     for art, ent in ents_top_dict.items():
         ents_id_dict[art] = ent_id_most_common_dict[ent]
 

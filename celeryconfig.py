@@ -11,7 +11,7 @@ from celery.schedules import crontab
 CELERYBEAT_SCHEDULE = {
     'every-30mins': {
         'task': 'tasks.post_process',
-        'schedule': crontab(minute='*/30'),
+        'schedule': crontab(minute='*/15'),
         #'args': (1,2),
     },
 }
