@@ -60,16 +60,16 @@ def get_table_data():
 
 
     print("Got df_url_table")
-    df_art_table["addedonpy"] = [d.to_pydatetime().date() for d in df_art_table["addedon"]]
+    df_art_table["addedonpy"] = [d.to_pydatetime() for d in df_art_table["addedon"]]
     df_art_table["addedon"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_art_table["addedonpy"]]
 
-    df_ent_table["addedonpy"] = [d.to_pydatetime().date() for d in df_ent_table["addedon"]]
+    df_ent_table["addedonpy"] = [d.to_pydatetime() for d in df_ent_table["addedon"]]
     df_ent_table["addedon"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_ent_table["addedonpy"]]
 
-    df_ent_table_norm["addedonpy"] = [d.to_pydatetime().date() for d in df_ent_table_norm["addedon"]]
+    df_ent_table_norm["addedonpy"] = [d.to_pydatetime() for d in df_ent_table_norm["addedon"]]
     df_ent_table_norm["addedon"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_ent_table_norm["addedonpy"]]
 
-    df_url_table["addedonpy"] = [d.to_pydatetime().date() for d in df_url_table["addedon"]]
+    df_url_table["addedonpy"] = [d.to_pydatetime() for d in df_url_table["addedon"]]
     df_url_table["addedon"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_url_table["addedonpy"]]
 
     df_art_table["length"] = [len(text) for text in df_art_table["text"]]
@@ -78,7 +78,7 @@ def get_table_data():
 
     print("Text cleaned and dates converted")
     print("Done with DB, number of articles: {}".format(len(df_art_table)))
-    print("Length of each table is df_art_table:{} df_ent_table:{} df_ent_table_norm:{} df_url_table:{}".format(len(df_art_table),len(df_ent_table),len(df_ent_table_norm),len(df_url_table)))  
+    #print("Length of each table is df_art_table:{} df_ent_table:{} df_ent_table_norm:{} df_url_table:{}".format(len(df_art_table),len(df_ent_table),len(df_ent_table_norm),len(df_url_table)))  
     cursor.close()
     conn.close()
     return df_art_table, df_ent_table, df_ent_table_norm, df_url_table
