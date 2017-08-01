@@ -1,3 +1,4 @@
+#!/usr/bin/python3.6
 # -*- coding: utf-8 -*-
 #import nltk
 from __future__ import absolute_import
@@ -37,10 +38,10 @@ from get_table_data import get_table_data
 
 df_art_table, df_ent_table, df_ent_table_norm, df_url_table = get_table_data()
 
-#df_url_table = df_url_table[(df_url_table.publishedat == '15_07_2017') ]
+#df_url_table = df_url_table[(df_url_table.addedon == '15_07_2017') ]
 print(len(df_url_table))
 df_url_table = df_url_table[df_url_table.sumanalyzed == False]
-df_url_table_date_set = set(df_url_table['publishedat'])
+df_url_table_date_set = set(df_url_table['addedon'])
 
 print(len(df_url_table))
 total_articles = len(df_url_table)
@@ -49,7 +50,7 @@ print("Starting summarisation")
 print(len(df_url_table))
 for date in df_url_table_date_set:
     conn, cursor = get_conn_info()
-    df_url_table_one_day = df_url_table[(df_url_table.publishedat == date) ] 
+    df_url_table_one_day = df_url_table[(df_url_table.addedon == date) ] 
     
     for index, row in df_url_table_one_day.iterrows():
         if(loop_count%10 == 0):

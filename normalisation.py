@@ -1,3 +1,5 @@
+#!/usr/bin/python3.6
+
 # -*- coding: utf-8 -*-
 """
 Created on Sun Jul 16 20:23:14 2017
@@ -70,7 +72,7 @@ df_ents_cut_current_article_dict = defaultdict(dict)
 df_ents_full = pd.DataFrame()
 df_ents_current = pd.DataFrame()
  
-#df_ent_table_date = df_ent_table[(df_ent_table.publishedat == '15_07_2017') ]
+#df_ent_table_date = df_ent_table[(df_ent_table.addedon == '15_07_2017') ]
 df_ent_table_date = df_ent_table
 
 df_ents_cut =  df_ent_table_date.loc[:,['article','score','name']]
@@ -86,10 +88,6 @@ for article in df_ents_cut.article.unique():
     df_ents.columns = ['name', 'score']
     df_ents['article'] = article
     df_ents_full = df_ents_full.append(df_ents)
-
-#entities = [["President Trump",0.5], ["Mr Jones",0.4], ["Donald Trump",0.5], 
-#            [u"Jones",0.4], ["Jones",0.4], ["Merkel",0.4], 
-#            ["Chancellor Merkel",0.4], ["Angela",0.4]]
 
 df_art_total =  df_art_table.loc[:,['uniqueid','entitynormalized']]
 df_art_ent = df_art_total[df_art_total.entitynormalized == False]
@@ -114,7 +112,7 @@ for index, row in df_art_ent.iterrows():
     articles_normed+=1
     loop_count+=1
 
-print("{} articles nomalised".format(articles_normed))
+print("{} articles normalised".format(articles_normed))
         
 conn.commit()
 cursor.close()
