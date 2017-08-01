@@ -7,3 +7,4 @@ def post_process():
     os.system("python3.6 ./similarity_nltk.py")
     os.system("python3.6 ./normalisation.py")
     os.system("python3.6 ./summ.py")
+    os.system("python3.6 ./parse_flags.py")
