@@ -46,7 +46,7 @@ df_url_table_date_set = set(df_url_table['addedon'])
 print(len(df_url_table))
 total_articles = len(df_url_table)
 loop_count = 0
-print("Starting summarisation")
+print("Summarisation articles to analyse: {}".format(total_articles))
 print(len(df_url_table))
 for date in df_url_table_date_set:
     conn, cursor = get_conn_info()

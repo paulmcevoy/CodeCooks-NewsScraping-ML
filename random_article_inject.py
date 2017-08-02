@@ -19,6 +19,7 @@ df_rand_table = sql.read_sql("SELECT backend_article.uniqueid, \
                             backend_article.url, \
                             backend_article.title, \
                             backend_article.source, \
+                            backend_article.aylien_sentiment_adv, \
                             backend_sentiment.watson_score, \
                             backend_sentiment.aylien_polarity, \
                             backend_sentiment.aylien_confidence, \
@@ -49,11 +50,11 @@ uniqueid_list = [4091936264, 3663702422,3477021980,2492906808,3759153076,1443587
 df_rand_table_sample_full = pd.DataFrame()
 
 for eachid in uniqueid_list:
-    print(eachid)
+    #print(eachid)
     df_rand_table_sample = df_rand_table[(df_rand_table.uniqueid == str(eachid)) ] 
     df_rand_table_sample_full = df_rand_table_sample_full.append(df_rand_table_sample)
 
-#get_aylien(df_rand_table_sample_full)
+get_aylien(df_rand_table_sample_full)
 
 df_rand_table_for_csv = df_rand_table.drop('text',1)
 df_rand_table_for_csv.to_csv('df_rand_table_for_csv.csv')

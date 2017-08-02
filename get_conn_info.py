@@ -18,7 +18,7 @@ def get_conn_info():
     else:    
         conn_string = "host='localhost' dbname='newsapp' user='postgres' password='codepostgrescook'"
     
-    print ("Connecting to database...\n")
+    #print ("Connecting to database...\n")
 
     conn = psycopg2.connect(conn_string)
     cursor = conn.cursor()
