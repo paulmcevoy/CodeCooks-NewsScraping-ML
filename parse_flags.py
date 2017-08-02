@@ -26,7 +26,7 @@ df_flag_table_true  = df_flag_table[(df_flag_table.analyzed == True) & (df_flag_
 
 conn, cursor = get_conn_info()
 
-print("{} articles fully analyzed".format(len(df_flag_table_true)))
+print("Parse flags:{} articles fully analyzed for sentiment".format(len(df_flag_table_true)))
 
 for uniqueid in df_flag_table_true.uniqueid:
     cursor.execute(" update backend_article set sentiment_analyzed = (%s) where uniqueid =  (%s) ;", (True, uniqueid,))

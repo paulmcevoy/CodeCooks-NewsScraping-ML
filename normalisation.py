@@ -10,6 +10,7 @@ Created on Sun Jul 16 20:23:14 2017
 from get_table_data import get_table_data
 import json
 import pandas as pd
+import datetime
 
 df_art_table, df_ent_table, df_ent_table_norm, get_url_table = get_table_data()
 from get_conn_info import get_conn_info
@@ -73,9 +74,12 @@ df_ents_full = pd.DataFrame()
 df_ents_current = pd.DataFrame()
  
 #df_ent_table_date = df_ent_table[(df_ent_table.addedon == '15_07_2017') ]
-df_ent_table_date = df_ent_table
+todays_date =  datetime.date.today()
+df_ent_table_date = df_ent_table[df_ent_table.addedondt == todays_date]
+#df_ent_table_date = df_ent_table
 
 df_ents_cut =  df_ent_table_date.loc[:,['article','score','name']]
+
 for article in df_ents_cut.article.unique():
     #get it into a format that renameEntities and removeDuplicateEntities need
     df_ents_cut_current_article = df_ents_cut[(df_ents_cut.article == article) ]
@@ -96,6 +100,9 @@ conn, cursor = get_conn_info()
 #df_art_ent = df_art_ent[:50]
 loop_count = 0
 total_articles = len(df_art_ent)
+#print("Normalisation articles to analyse: {}  {}".format(total_articles), datetime.datetime.now())
+print("Normalisation articles to analyse: {}".format(total_articles))
+
 articles_normed = 0
 for index, row in df_art_ent.iterrows():
     article = row['uniqueid']

@@ -10,6 +10,7 @@ import nltk
 import json
 from get_table_data import get_table_data
 from get_conn_info import get_conn_info
+import datetime
 def extract_entity_names(t):
     entity_names = []
 
@@ -57,8 +58,9 @@ with open('common_entities.json', 'r') as f:
 
 df_art_table, df_ent_table, df_ent_table_norm, df_url_table = get_table_data()
 
-#df_ent_table_date = df_art_table[(df_art_table.addedon == '19_07_2017') | (df_art_table.addedon == '18_07_2017') | (df_art_table.addedon == '17_07_2017') ]
-df_ent_table_date = df_art_table
+todays_date =  datetime.date.today()
+df_ent_table_date = df_art_table[df_art_table.addedondt == todays_date]
+
 df_ents_data_set = set(df_ent_table_date['addedon'])
 df_art_titles =  df_ent_table_date.loc[:,['uniqueid','title','addedon']]
 

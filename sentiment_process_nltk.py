@@ -28,9 +28,9 @@ import unicodedata
 df_table_date_nltk = df_art_table[df_art_table.nltk_sentiment == False]
 df_table_date_nltk_set = set(df_table_date_nltk['addedon'])
 
-print(len(df_art_table))
+#print(len(df_art_table))
 total_articles = len(df_table_date_nltk)
-print("Num articles to process: {}".format(total_articles))
+print("NLTK sentiment articles to analyse: {}".format(total_articles))
 loop_count = 0
 for date in df_table_date_nltk_set:
     conn, cursor = get_conn_info()
