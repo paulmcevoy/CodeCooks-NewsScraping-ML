@@ -2,6 +2,16 @@
 
 Machine Learning Code
 ```
+
+1. Entity Normalisation
+2. Article Similarity 
+3. NLTK Sentiment 
+4. Aylien Sentiment
+5. Summarisation
+6. Parse flags 
+
+
+
 From https://github.com/ucd-nlmsc-teamproject/CodeCooks-Repo-ML fork this project
 Then cd your_project_directory
 git clone git@github.com:<your_user_name>/CodeCooks-Repo-ML.git
