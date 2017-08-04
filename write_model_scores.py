@@ -22,6 +22,7 @@ import numbers
 #calculate the model score for a row given the parameters
 def score(row, parameters):
     # Extract relevant scores from the row if the right type
+    # (may not all be used, depending on the parameters)
     watson_score = 0
     if isinstance(row["watson_score"], numbers.Number):
         watson_score = row["watson_score"]
@@ -37,8 +38,29 @@ def score(row, parameters):
     nltk_combined_sentiment = 0
     if isinstance(row["nltk_combined_sentiment"], numbers.Number):
         nltk_combined_sentiment = row["nltk_combined_sentiment"]
+        
+    nltk_paragraph1_sentiment = 0
+    if isinstance(row["nltk_paragraph1_sentiment"], numbers.Number):
+        nltk_paragraph1_sentiment = row["nltk_paragraph1_sentiment"]
 
+    nltk_title_sentiment = 0
+    if isinstance(row["nltk_title_sentiment"], numbers.Number):
+        nltk_title_sentiment = row["nltk_title_sentiment"]
+        
+    disgust = 0
+    if isinstance(row["disgust"], numbers.Number):
+        disgust = row["disgust"]
+        
+    fear = 0
+    if isinstance(row["fear"], numbers.Number):
+        fear = row["fear"] 
+        
+    sadness = 0
+    if isinstance(row["sadness"], numbers.Number):
+        fear = row["sadness"] 
+        
     # Calculate the amount, if any, by which watson_score is less than cutoff
+    # (may not be used, depending on the parameters)
     cutoff = parameters.iloc[0][0]
     very_neg_watson = 0
     if watson_score < cutoff:
@@ -47,12 +69,13 @@ def score(row, parameters):
     # The intercept and coefficient were obtained using a separate
     # multiple linear regression model.
     intercept = parameters.iloc[0][1]
-    watson_coefficient = parameters.iloc[0][2]
-    alyien_coefficient = parameters.iloc[0][3]
-    nltk_coefficient = parameters.iloc[0][4]
-    very_neg_watson_coefficient = parameters.iloc[0][5]
-
-    # Convert aylien polarity string into a number
+    nltk_paragraph1_sentiment_coefficient = parameters.iloc[0][2]
+    nltk_title_sentiment_coefficient = parameters.iloc[0][3]
+    disgust_coefficient = parameters.iloc[0][4]
+    fear_coefficient = parameters.iloc[0][5]
+    sadness_coefficient = parameters.iloc[0][6]
+    
+    # Convert aylien polarity string into a number (may not be used, depending on the parameters)
     if aylien_polarity == "negative": 
         alyien_pole = -1
     elif aylien_polarity == "positive":
@@ -61,10 +84,11 @@ def score(row, parameters):
         alyien_pole = 0
     
     # Calculate predicted score
-    predicted_score= intercept + watson_coefficient*watson_score + \
-        very_neg_watson_coefficient*very_neg_watson + \
-        alyien_coefficient*alyien_pole*aylien_confidence + \
-        nltk_coefficient*nltk_combined_sentiment
+    predicted_score= intercept + nltk_paragraph1_sentiment_coefficient*nltk_paragraph1_sentiment + \
+        nltk_title_sentiment_coefficient*nltk_title_sentiment + \
+        disgust_coefficient*disgust + \
+        fear_coefficient*fear + \
+        sadness_coefficient*sadness
     return (predicted_score)
 
 def main():
@@ -109,7 +133,7 @@ def main():
             backend_sentiment, backend_emotion 
             WHERE 
             backend_sentiment.article = backend_emotion.article AND
-            backend_sentiment.article IN (select uniqueid from backend_article) limit 3 """)
+            backend_sentiment.article IN (select uniqueid from backend_article)""")
 
         conn.commit()
 
@@ -143,10 +167,12 @@ def main():
         m_score = x.loc[x['article'] == article, 'model_score'].iloc[0]
         #print(m_score)
         sql = "UPDATE backend_sentiment SET model_score = %f WHERE article = '%s';" % (m_score, article)
+        sql2 = "UPDATE backend_article SET modelprocessed = true WHERE uniqueid = '%s';" % article
 
         try:
 
             curs.execute(sql)
+            curs.execute(sql2)
             
             conn.commit()
 
