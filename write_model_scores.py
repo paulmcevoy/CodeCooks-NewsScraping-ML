@@ -43,6 +43,10 @@ def score(row, parameters):
     if isinstance(row["nltk_paragraph1_sentiment"], numbers.Number):
         nltk_paragraph1_sentiment = row["nltk_paragraph1_sentiment"]
 
+    nltk_paragraph2_sentiment = 0
+    if isinstance(row["nltk_paragraph2_sentiment"], numbers.Number):
+        nltk_paragraph1_sentiment = row["nltk_paragraph2_sentiment"]
+
     nltk_title_sentiment = 0
     if isinstance(row["nltk_title_sentiment"], numbers.Number):
         nltk_title_sentiment = row["nltk_title_sentiment"]
@@ -61,19 +65,18 @@ def score(row, parameters):
         
     # Calculate the amount, if any, by which watson_score is less than cutoff
     # (may not be used, depending on the parameters)
-    cutoff = parameters.iloc[0][0]
-    very_neg_watson = 0
-    if watson_score < cutoff:
-        very_neg_watson = watson_score-cutoff
+    #cutoff = parameters.iloc[0][0]
+    #very_neg_watson = 0
+    #if watson_score < cutoff:
+    #    very_neg_watson = watson_score-cutoff
 
     # The intercept and coefficient were obtained using a separate
     # multiple linear regression model.
     intercept = parameters.iloc[0][1]
-    nltk_paragraph1_sentiment_coefficient = parameters.iloc[0][2]
-    nltk_title_sentiment_coefficient = parameters.iloc[0][3]
-    disgust_coefficient = parameters.iloc[0][4]
-    fear_coefficient = parameters.iloc[0][5]
-    sadness_coefficient = parameters.iloc[0][6]
+    nltk_combined_sentiment_coefficient = parameters.iloc[0][2]
+    sadness_coefficient = parameters.iloc[0][3]
+    nltk_combined_paragraph2_coefficient = parameters.iloc[0][4]
+    nltk_combined_title_coefficient = parameters.iloc[0][5]
     
     # Convert aylien polarity string into a number (may not be used, depending on the parameters)
     if aylien_polarity == "negative": 
@@ -84,11 +87,10 @@ def score(row, parameters):
         alyien_pole = 0
     
     # Calculate predicted score
-    predicted_score= intercept + nltk_paragraph1_sentiment_coefficient*nltk_paragraph1_sentiment + \
-        nltk_title_sentiment_coefficient*nltk_title_sentiment + \
-        disgust_coefficient*disgust + \
-        fear_coefficient*fear + \
-        sadness_coefficient*sadness
+    predicted_score= intercept + nltk_combined_sentiment_coefficient*nltk_combined_sentiment + \
+        sadness_coefficient*sadness + \
+        nltk_combined_paragraph2_coefficient*(nltk_combined_sentiment-nltk_paragraph2_sentiment) + \
+        nltk_combined_title_coefficient*(nltk_combined_sentiment-nltk_title_sentiment)
     return (predicted_score)
 
 def main():
