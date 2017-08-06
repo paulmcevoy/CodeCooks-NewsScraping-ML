@@ -11,8 +11,10 @@ def get_table_data():
                                 backend_article.url, \
                                 backend_article.title, \
                                 backend_article.source, \
+                                backend_article.modelprocessed, \
                                 backend_sentiment.watson_score, \
                                 backend_sentiment.nltk_combined_sentiment, \
+                                backend_sentiment.nltk_title_sentiment, \
                                 backend_article.entitynormalized, \
                                 backend_article.nltk_sentiment, \
                                 backend_article.aylien_sentiment_adv, \
