@@ -168,6 +168,7 @@ def main():
         article = row[0]
         m_score = x.loc[x['article'] == article, 'model_score'].iloc[0]
         #print(m_score)
+        
         sql = "UPDATE backend_sentiment SET model_score = %f WHERE article = '%s';" % (m_score, article)
         sql2 = "UPDATE backend_article SET modelprocessed = true WHERE uniqueid = '%s';" % article
 
@@ -185,7 +186,7 @@ def main():
             print 'Error %s' % e    
 
             sys.exit(1)
-    
+        
     # Close the connection when done
     if conn is not None:
         conn.close()

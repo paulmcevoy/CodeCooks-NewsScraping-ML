@@ -39,11 +39,8 @@ from get_table_data import get_table_data
 df_art_table, df_ent_table, df_ent_table_norm, df_url_table = get_table_data()
 
 #df_url_table = df_url_table[(df_url_table.addedon == '15_07_2017') ]
-print(len(df_url_table))
 df_url_table = df_url_table[df_url_table.sumanalyzed == False]
 df_url_table_date_set = set(df_url_table['addedon'])
-
-print(len(df_url_table))
 total_articles = len(df_url_table)
 loop_count = 0
 print("Summarisation articles to analyse: {}".format(total_articles))
