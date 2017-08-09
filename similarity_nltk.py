@@ -8,7 +8,7 @@ Created on Thu Jul 20 16:58:42 2017
 import pandas as pd
 import nltk 
 import json
-from get_table_data import get_table_data
+from get_table_data import get_art_table, get_ent_table, get_ent_norm_table, get_url_table
 from get_conn_info import get_conn_info
 import datetime
 def extract_entity_names(t):
@@ -56,7 +56,7 @@ def removeDuplicateEntitiesNoScore(entities, common_entities):
 with open('common_entities.json', 'r') as f:
     common_entities = json.load(f)
 
-df_art_table, df_ent_table, df_ent_table_norm, df_url_table = get_table_data()
+df_art_table = get_art_table()
 
 todays_date =  datetime.date.today()
 df_ent_table_date = df_art_table[df_art_table.addedondt == todays_date]
@@ -98,7 +98,7 @@ for date in df_ents_data_set:
             ents_dict[uniqueid]= entities_rename_no_dups
             for each_ent in entities_rename_no_dups:
                 each_ent_list.append(each_ent)   
-    
+    """
     for key1, value1 in ents_dict.items():
         for key2, value2 in ents_dict.items():
             sim_num = len(set(value1) & set(value2))
@@ -109,7 +109,7 @@ for date in df_ents_data_set:
                 df_ents_sim = df_ents_sim.append(pd.DataFrame({'article1': key1, 'article2': key2, 'sim_count': sim_num, 'entities': sim_vals}, index=[0]), ignore_index=True)
                 for sim_each in sim_vals:
                     sim_each_list.append(sim_each)    
-                    
+    """                
     ent_id_most_common_dict = defaultdict(dict)                
     ents_count = Counter(each_ent_list)
     ents_count_most_common = ents_count.most_common(10)
