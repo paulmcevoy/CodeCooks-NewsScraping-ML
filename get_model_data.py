@@ -5,6 +5,7 @@ import pandas.io.sql as sql
 from get_conn_info import get_conn_info
 #from sentiment_process_aylien import get_aylien
 from collections import  defaultdict
+import numpy as np
 
 
 def get_mod_data():
@@ -25,6 +26,7 @@ def get_mod_data():
                                     backend_sentiment.nltk_paragraph2_sentiment, 
                                     backend_sentiment.nltk_title_sentiment, 
                                     backend_sentiment.nltk_combined_sentiment, 
+                                    backend_sentiment.model_score, 
                                     backend_emotion.anger,
                                     backend_emotion.disgust,
                                     backend_emotion.fear,
@@ -34,11 +36,14 @@ def get_mod_data():
 where backend_randomarticleuserrating.uniqueid_id = backend_sentiment.article AND backend_randomarticleuserrating.uniqueid_id = backend_emotion.article;""", conn)  
     cursor.close()
     conn.close()
-    return df_mod_table
+    df_mod_table_simple = df_mod_table[['articleid', 'watson_score', 'nltk_combined_sentiment', 'nltk_title_sentiment','model_score', 'userscore']]
+    df_mod_table_simple_mean = pd.DataFrame(df_mod_table_simple.groupby(['articleid', 'watson_score', 'nltk_combined_sentiment','nltk_title_sentiment', 'model_score'],as_index=False)['userscore'].mean())
+
+    return df_mod_table, df_mod_table_simple_mean
 
 
 #df_rand_table = get_rand_data()
-df_mod_table = get_mod_data()
+df_mod_table, df_mod_table_simple_mean = get_mod_data()
 df_mod_table.to_csv('df_mod_table.csv')
 
 
@@ -61,8 +66,19 @@ df_rand_table_sample_full.to_csv('df_rand_table_sample_full_cut.csv')
 
 #get_aylien(df_rand_table_sample_full_cut)
 """
-df_mod_table_simple = df_mod_table[['articleid', 'watson_score', 'nltk_combined_sentiment', 'nltk_title_sentiment', 'userscore']]
-df_mod_table_simple_mean = pd.DataFrame(df_mod_table_simple.groupby(['articleid', 'watson_score', 'nltk_combined_sentiment','nltk_title_sentiment'])['userscore'].mean())
+
+#for index, row in df_mod_table_simple_mean.iterrows():
+    #print(row['watson_score'])
+"""
+if (row['watson_score'] < 0): #both neg
+    new_score = (0.7*row['watson_score'] + 0.3*row['nltk_title_sentiment'])/2
+elif (row['nltk_combined_sentiment'] > 0 and row['watson_score'] > 0):
+    new_score = (0.7*row['watson_score'] + 0.3*row['nltk_title_sentiment'])/2
+else:
+    new_score = (0.7* ((row['watson_score'] + row['nltk_title_sentiment'])/2)    +   0.3*row['nltk_title_sentiment']) /2
+print(index, new_score)
+df_mod_table_simple_mean.loc[index, 'new_score'] = new_score
+"""
 df_mod_table_simple_mean.to_csv('df_mod_table_simple_mean.csv')
 
-
+#df_mod_table_simple.to_csv('df_mod_table_simple.csv')

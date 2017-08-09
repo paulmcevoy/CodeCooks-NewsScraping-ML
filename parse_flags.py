@@ -22,7 +22,7 @@ def get_flag_data():
 
 df_flag_table = get_flag_data()
 
-df_flag_table_true  = df_flag_table[(df_flag_table.analyzed == True) & (df_flag_table.nltk_sentiment == True) & (df_flag_table.aylien_sentiment_adv == True)]
+df_flag_table_true  = df_flag_table.loc[(df_flag_table.analyzed == True) & (df_flag_table.nltk_sentiment == True) & (df_flag_table.aylien_sentiment_adv == True)]
 
 conn, cursor = get_conn_info()
 

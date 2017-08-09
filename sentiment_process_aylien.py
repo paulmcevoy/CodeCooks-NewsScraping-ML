@@ -6,7 +6,7 @@ import math
 from aylienapiclient import textapi
 from get_conn_info import get_conn_info
 import time
-from get_table_data import get_table_data
+from get_table_data import get_art_table, get_ent_table, get_ent_norm_table, get_url_table
 from nltk import tokenize
 tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 import datetime
@@ -62,8 +62,9 @@ def get_aylien(df_sample):
     conn.commit()
     cursor.close()    
 
-df_art_table, df_ent_table, df_ent_table_norm, df_url_table = get_table_data()
+df_art_table = get_art_table()
 
+#only get Aylien data after this date due to limits
 adate = datetime.date(2017, 7, 31)
 #print ('Today  :', datetime.datetime.today())
 df_table_date = df_art_table[df_art_table.addedonpy > adate]
