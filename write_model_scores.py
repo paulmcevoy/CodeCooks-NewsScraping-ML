@@ -5,9 +5,9 @@ Created on Thu Jul 27 07:28:27 2017
 
 @author: Frank Humphreys, Ed Hope
 
-Purpose: Retrieve sentiment and (to do: other scores) from the database, 
-calculate a new sentiment score derived using a linear regression model, and 
-then write the new scores to a dataframe and then (to do) to the database.
+Purpose: Retrieve sentiment and emotion scores from the database, 
+calculates a new sentiment score derived using a linear regression model, and 
+then writes the new scores to a dataframe and then to the database.
 """
 ## Import needed modules and libraries
 import psycopg2
@@ -168,9 +168,9 @@ def main():
         article = row[0]
         m_score = x.loc[x['article'] == article, 'model_score'].iloc[0]
         #print(m_score)
-        
-        sql = "UPDATE backend_sentiment SET model_score = %f WHERE article = '%s';" % (m_score, article)
-        sql2 = "UPDATE backend_article SET modelprocessed = true WHERE uniqueid = '%s';" % article
+        if m_score is not(None):
+            sql = "UPDATE backend_sentiment SET model_score = %f WHERE article = '%s';" % (m_score, article)
+            sql2 = "UPDATE backend_article SET modelprocessed = true WHERE uniqueid = '%s';" % article
 
         try:
 
@@ -186,7 +186,7 @@ def main():
             print 'Error %s' % e    
 
             sys.exit(1)
-        
+    
     # Close the connection when done
     if conn is not None:
         conn.close()
