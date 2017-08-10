@@ -83,21 +83,37 @@ def get_ent_norm_table():
     return df_ent_table_norm
 
 
-def get_url_table():
+def get_url_table():    
     conn, cursor = get_conn_info()
     df_url_table = sql.read_sql("SELECT backend_article.uniqueid, \
                             backend_article.url, \
                             backend_article.addedon, \
                             backend_article.sumanalyzed \
                             FROM backend_article;", conn)  
-
-
-
+    
     df_url_table["addedonpy"] = [d.to_pydatetime() for d in df_url_table["addedon"]]
     df_url_table["addedon"] =  [d.strftime('%d_%m_%Y') if not pd.isnull(d) else '' for d in df_url_table["addedonpy"]]
     cursor.close()
     conn.close()
     return df_url_table
+
+def get_top_ents():
+    conn, cursor = get_conn_info()
+    df_top_ents_table = sql.read_sql("select backend_article.addedon, backend_entitiesnormalized.name, \
+                                        backend_entitiesnormalized.score, \
+                                        backend_entitiesnormalized.article,  backend_sentiment.model_score FROM \
+                                        backend_sentiment,  backend_article, backend_entitiesnormalized WHERE  \
+                                        backend_article.uniqueid = backend_entitiesnormalized.article AND \
+                                        backend_article.uniqueid = backend_sentiment.article;", conn)
+
+    df_top_ents_table["addedonpy"] = [d.to_pydatetime() for d in df_top_ents_table["addedon"]]
+    df_top_ents_table["addedondt"] = [d.to_pydatetime().date() for d in df_top_ents_table["addedon"]]    
+    cursor.close()
+    conn.close()
+    return df_top_ents_table
+
+
+
 
     #print("Text cleaned and dates converted")
     #print("Done with DB, number of articles: {}".format(len(df_art_table)))

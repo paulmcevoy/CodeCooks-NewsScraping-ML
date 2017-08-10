@@ -10,7 +10,11 @@ import nltk
 import json
 from get_table_data import get_art_table, get_ent_table, get_ent_norm_table, get_url_table
 from get_conn_info import get_conn_info
+from pympler import tracker
 import datetime
+#debug to track memory leaks
+#tr = tracker.SummaryTracker()
+
 def extract_entity_names(t):
     entity_names = []
 
@@ -56,13 +60,15 @@ def removeDuplicateEntitiesNoScore(entities, common_entities):
 with open('common_entities.json', 'r') as f:
     common_entities = json.load(f)
 
+#df_art_table, df_ent_table, df_ent_table_norm, df_url_table = get_table_data()
 df_art_table = get_art_table()
 
-todays_date =  datetime.date.today()
-df_ent_table_date = df_art_table[df_art_table.addedondt == todays_date]
 
-df_ents_data_set = set(df_ent_table_date['addedon'])
-df_art_titles =  df_ent_table_date.loc[:,['uniqueid','title','addedon']]
+#todays_date =  datetime.date.today()
+#df_ent_table_date = df_art_table[df_art_table.addedondt == todays_date]
+df_ent_table_date = df_art_table
+df_ents_data_set = sorted(set(df_ent_table_date['addedondt']))
+df_art_titles =  df_ent_table_date.loc[:,['uniqueid','title','addedondt']]
 
 #df_art_titles = df_art_titles[:200]
 from collections import Counter
@@ -70,12 +76,23 @@ from collections import  defaultdict
 df_ents_sim_dict = defaultdict(dict)
 ents_top_dict = defaultdict(dict)
 df_ents_sim = pd.DataFrame([])
+
+
 #df_art_ent = df_art_total[df_art_total.entitynormalized == False]
+global_offset = 0
+
+#clean the groups
+conn, cursor = get_conn_info()
+cursor.execute(" update backend_article set similaritygroupid = null;")
+conn.commit()
+cursor.close()
+conn.close()
+
 
 for date in df_ents_data_set:
     sim_each_list = []
     each_ent_list = []
-    df_art_titles_date = df_art_titles[df_art_titles.addedon == date]
+    df_art_titles_date = df_art_titles[df_art_titles.addedondt == date]
     ents_dict = defaultdict(dict)
 
     for index, row in df_art_titles_date.iterrows():
@@ -116,8 +133,10 @@ for date in df_ents_data_set:
     most_common_list = [i[0] for i in ents_count_most_common]
     #for ent in most_common_list:
     for idx, ent in enumerate(most_common_list):
-        ent_id_most_common_dict[ent] = idx +1
-        
+        ent_id_most_common_dict[ent] = idx + global_offset
+
+    global_offset+=len(most_common_list)
+
     ents_top_dict = defaultdict(dict)
     ents_id_dict = defaultdict(dict)
 
@@ -133,8 +152,10 @@ for date in df_ents_data_set:
     for art, ent in ents_top_dict.items():
         ents_id_dict[art] = ent_id_most_common_dict[ent]
 
+    group_list = []
     conn, cursor = get_conn_info()
-     
+    for k,v in ents_id_dict.items():
+        group_list.append(v)
     
     loop_count = 0
     total_articles = len(df_art_titles_date)
@@ -146,11 +167,21 @@ for date in df_ents_data_set:
         #if(loop_count%100 == 0):
         #    print("{} of {} articles grouped".format(loop_count, total_articles))
         #df_ents_current = df_ents_full[df_ents_full.article == article]
-            #print("Normalising article {} ent {} score {}".format(article, name, score))
+        #print("{} Normalising article {} got group {}".format(date, article, id_val))
+
         cursor.execute(" update backend_article set similaritygroupid = (%s) where uniqueid =  (%s) ;", (id_val , article,))
+        
         articles_grouped+=1
         loop_count+=1
     
-    print("{} articles grouped from total {}".format(articles_grouped, len(df_art_titles_date) ))
+    #print("I found {} groups on {}".format(len(set(group_list)), date, ))
+    #print("{} articles grouped from total {}".format(articles_grouped, total_articles ))
+    #print("Groups are {}".format(sorted(set(group_list))))
+
+    #debug to track memory leaks
+    #tr.print_diff()
     conn.commit()
     cursor.close()
+    conn.close()
+
+print("Grouping Done")
