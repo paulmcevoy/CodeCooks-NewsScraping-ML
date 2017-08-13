@@ -17,6 +17,7 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 import sys
 import pandas as pd
+import numpy as np
 import numbers
 
 #calculate the model score for a row given the parameters
@@ -35,9 +36,37 @@ def score(row, parameters):
     if row["aylien_confidence"] > 0:
         aylien_confidence = row["aylien_confidence"]
     
+    aylien_title_sentiment = "0"
+    if row["aylien_title_sentiment"] in ("posiive", "neutral", "negative"):
+        aylien_title_sentiment = row["aylien_title_sentiment"]
+        
+    aylien_title_confidence = 0
+    if row["aylien_title_confidence"] > 0:
+        aylien_title_confidence = row["aylien_title_confidence"]
+    
+    aylien_paragraph1_sentiment = "0"
+    if row["aylien_paragraph1_sentiment"] in ("posiive", "neutral", "negative"):
+        aylien_paragraph1_sentiment = row["aylien_paragraph1_sentiment"]
+        
+    aylien_paragraph1_confidence = 0
+    if row["aylien_paragraph1_confidence"] > 0:
+        aylien_paragraph1_confidence = row["aylien_paragraph1_confidence"]
+
+    aylien_paragraph2_sentiment = "0"
+    if row["aylien_paragraph2_sentiment"] in ("posiive", "neutral", "negative"):
+        aylien_paragraph2_sentiment = row["aylien_paragraph2_sentiment"]
+        
+    aylien_paragraph2_confidence = 0
+    if row["aylien_paragraph2_confidence"] > 0:
+        aylien_paragraph2_confidence = row["aylien_paragraph2_confidence"]
+
     nltk_combined_sentiment = 0
     if isinstance(row["nltk_combined_sentiment"], numbers.Number):
         nltk_combined_sentiment = row["nltk_combined_sentiment"]
+        
+    nltk_title_sentiment = 0
+    if isinstance(row["nltk_title_sentiment"], numbers.Number):
+        nltk_title_sentiment = row["nltk_title_sentiment"]
         
     nltk_paragraph1_sentiment = 0
     if isinstance(row["nltk_paragraph1_sentiment"], numbers.Number):
@@ -45,11 +74,15 @@ def score(row, parameters):
 
     nltk_paragraph2_sentiment = 0
     if isinstance(row["nltk_paragraph2_sentiment"], numbers.Number):
-        nltk_paragraph1_sentiment = row["nltk_paragraph2_sentiment"]
+        nltk_paragraph2_sentiment = row["nltk_paragraph2_sentiment"]
 
-    nltk_title_sentiment = 0
-    if isinstance(row["nltk_title_sentiment"], numbers.Number):
-        nltk_title_sentiment = row["nltk_title_sentiment"]
+    joy = 0
+    if isinstance(row["joy"], numbers.Number):
+        joy = row["joy"]
+        
+    anger = 0
+    if isinstance(row["anger"], numbers.Number):
+        anger = row["anger"]
         
     disgust = 0
     if isinstance(row["disgust"], numbers.Number):
@@ -61,36 +94,223 @@ def score(row, parameters):
         
     sadness = 0
     if isinstance(row["sadness"], numbers.Number):
-        fear = row["sadness"] 
+        sadness = row["sadness"] 
         
-    # Calculate the amount, if any, by which watson_score is less than cutoff
-    # (may not be used, depending on the parameters)
-    #cutoff = parameters.iloc[0][0]
-    #very_neg_watson = 0
-    #if watson_score < cutoff:
-    #    very_neg_watson = watson_score-cutoff
+    '''
+    New regressors 
+    ---------------
+    It has been observed that some sentiment tools may be better at predicting 
+    negative sentiments than they are at predicting positive sentiments, and 
+    vice-versa. Therefore, we will split each sentiment regressor into positive 
+    and negative, so that they can have different weights.
+    '''
+    watson_positive = np.where(watson_score > 0, \
+        watson_score,0)
 
-    # The intercept and coefficient were obtained using a separate
-    # multiple linear regression model.
-    intercept = parameters.iloc[0][1]
-    nltk_combined_sentiment_coefficient = parameters.iloc[0][2]
-    sadness_coefficient = parameters.iloc[0][3]
-    nltk_combined_paragraph2_coefficient = parameters.iloc[0][4]
-    nltk_combined_title_coefficient = parameters.iloc[0][5]
+    watson_negative = np.where(watson_score < 0, \
+        watson_score,0)
     
-    # Convert aylien polarity string into a number (may not be used, depending on the parameters)
-    if aylien_polarity == "negative": 
-        alyien_pole = -1
-    elif aylien_polarity == "positive":
-        alyien_pole = 1
-    else:
-        alyien_pole = 0
+    nltk_combined_positive = np.where(nltk_combined_sentiment > 0, \
+        nltk_combined_sentiment,0)
+    
+    nltk_combined_negative = np.where(nltk_combined_sentiment < 0, \
+        nltk_combined_sentiment,0)
+    
+    nltk_title_positive = np.where(nltk_title_sentiment > 0, \
+        nltk_title_sentiment,0)
+    
+    nltk_title_negative = np.where(nltk_title_sentiment < 0, \
+        nltk_title_sentiment,0)
+
+    nltk_paragraph1_positive = np.where(nltk_paragraph1_sentiment > 0, \
+        nltk_paragraph1_sentiment,0)
+    
+    nltk_paragraph1_negative = np.where(nltk_paragraph1_sentiment < 0, \
+        nltk_paragraph1_sentiment,0)
+    
+    nltk_paragraph2_positive = np.where(nltk_paragraph2_sentiment > 0, \
+        nltk_paragraph2_sentiment,0)
+    
+    nltk_paragraph2_negative = np.where(nltk_paragraph2_sentiment < 0, \
+        nltk_paragraph2_sentiment,0)
+
+    '''
+    Alyien scores are quite different to those produced by NLTK and Watson. 
+    There is a large band of neutral scores and the positive and negative
+    scores are measures of confidence.
+    
+    We convert Aylien sentiment scores into ratings, split into positive and
+    negative and ignore neutral. Assume neutral is equivalent to -0.2 to 0.2, 
+    positive to > 0.2 and negative to < -0.2.
+    '''
+    
+    #Adjust non-zero positve score from the range 0-1 to the range 0.2-1.
+    aylien_positive = np.where(aylien_polarity=="positive", \
+        aylien_confidence/0.8 + 0.2,0)
+    
+    # Adjust non-zero negative score from the range 0 to -1 to -0.2 to -1.
+    aylien_negative = np.where(aylien_polarity=="negative", \
+        aylien_confidence/-0.8 - 0.2,0)
+
+    # As above for other Alyien scores
+    aylien_title_positive = np.where(aylien_title_sentiment=="positive", \
+        aylien_title_confidence/0.8 + 0.2,0)
+    
+    aylien_title_negative = np.where(aylien_title_sentiment=="negative", \
+        aylien_title_confidence/-0.8 - 0.2,0)
+
+    aylien_paragraph1_positive = np.where(aylien_paragraph1_sentiment=="positive", \
+        aylien_paragraph1_confidence/0.8 + 0.2,0)
+    
+    aylien_paragraph1_negative = np.where(aylien_paragraph1_sentiment=="negative", \
+        aylien_paragraph1_confidence/-0.8 - 0.2,0)
+
+    aylien_paragraph2_positive = np.where(aylien_paragraph2_sentiment=="positive", \
+        aylien_paragraph2_confidence/0.8 + 0.2,0)
+    
+    aylien_paragraph2_negative = np.where(aylien_paragraph2_sentiment=="negative", \
+        aylien_paragraph2_confidence/-0.8 - 0.2,0)
+    
+    '''
+    Make regressors orthogonal
+    --------------------------
+    All relative to NLTK, since it is free. 
+    '''
+
+    nc_watson_positive = nltk_combined_positive-watson_positive
+    nc_nltk_title_positive = nltk_combined_positive-nltk_title_positive
+    nc_nltk_paragraph1_positive = nltk_combined_positive-nltk_paragraph1_positive
+    nc_nltk_paragraph2_positive = nltk_combined_positive-nltk_paragraph2_positive
+    nc_aylien_positive = nltk_combined_positive-aylien_positive
+    nc_aylien_title_positive = nltk_combined_positive-aylien_title_positive
+    nc_aylien_paragraph1_positive = nltk_combined_positive-aylien_paragraph1_positive
+    nc_aylien_paragraph2_positive = nltk_combined_positive-aylien_paragraph2_positive
+    nc_joy = nltk_combined_positive-joy
+    nc_watson_negative = nltk_combined_negative-watson_negative
+    nc_nltk_title_negative = nltk_combined_negative-nltk_title_negative
+    nc_nltk_paragraph1_negative = nltk_combined_negative-nltk_paragraph1_negative
+    nc_nltk_paragraph2_negative = nltk_combined_negative-nltk_paragraph2_negative
+    nc_aylien_negative = nltk_combined_negative-aylien_negative
+    nc_aylien_title_negative = nltk_combined_negative-aylien_title_negative
+    nc_aylien_paragraph1_negative = nltk_combined_negative-aylien_paragraph1_negative
+    nc_aylien_paragraph2_negative = nltk_combined_negative-aylien_paragraph2_negative
+    nc_anger = nltk_combined_negative-anger
+    nc_fear = nltk_combined_negative-fear
+    nc_sadness = nltk_combined_negative-sadness
+    nc_disgust = nltk_combined_negative-disgust
+    
+    "nltk_combined_positive","nltk_combined_negative", \
+    "nc_watson_positive", "nc_nltk_title_positive", \
+    "nc_nltk_paragraph1_positive", "nc_nltk_paragraph2_positive", \
+    "nc_aylien_positive","nc_aylien_title_positive", \
+    "nc_aylien_paragraph1_positive", "nc_aylien_paragraph2_positive","nc_joy", \
+    "nc_watson_negative","nc_nltk_title_negative","nc_nltk_paragraph1_negative", \
+    "nc_nltk_paragraph2_negative","nc_aylien_negative", \
+    "nc_aylien_title_negative", "nc_aylien_paragraph1_negative", \
+    "nc_aylien_paragraph2_negative","nc_anger", "nc_fear","nc_sadness", \
+    "nc_disgust"
+        
+    '''
+    Extract coefficients from file
+    ------------------------------
+    The intercept and coefficients were obtained using a separate
+    multiple linear regression model script.
+    '''    
+    intercept = parameters.iloc[0]["intercept"]
+    nltk_combined_positive_coefficient = 0
+    if "nltk_combined_positive" in parameters.columns:
+        nltk_combined_positive_coefficient = parameters.iloc[0]["nltk_combined_positive"]
+    nc_watson_positive_coefficient = 0
+    if "nc_watson_positive" in parameters.columns:
+        nc_watson_positive_coefficient = parameters.iloc[0]["nc_watson_positive"]
+    nc_nltk_title_positive_coefficient = 0
+    if "nc_nltk_title_positive" in parameters.columns:
+        nc_nltk_title_positive_coefficient = parameters.iloc[0]["nc_nltk_title_positive"]
+    nc_nltk_paragraph1_positive_coefficient = 0
+    if "nc_nltk_paragraph1_positive" in parameters.columns:
+        nc_nltk_paragraph1_positive_coefficient = parameters.iloc[0]["nc_nltk_paragraph1_positive"]
+    nc_nltk_paragraph2_positive_coefficient = 0
+    if "nc_nltk_paragraph2_positive" in parameters.columns:
+        nc_nltk_paragraph2_positive_coefficient = parameters.iloc[0]["nc_nltk_paragraph2_positive"]
+    nc_aylien_positive_coefficient = 0
+    if "nc_aylien_positive" in parameters.columns:
+        nc_aylien_positive_coefficient = parameters.iloc[0]["nc_aylien_positive"]
+    nc_aylien_title_positive_coefficient = 0
+    if "nc_aylien_title_positive" in parameters.columns:
+        nc_aylien_title_positive_coefficient = parameters.iloc[0]["nc_aylien_title_positive"]
+    nc_aylien_paragraph1_positive_coefficient = 0
+    if "nc_aylien_paragraph1_positive" in parameters.columns:
+        nc_aylien_paragraph1_positive_coefficient = parameters.iloc[0]["nc_aylien_paragraph1_positive"]
+    nc_aylien_paragraph2_positive_coefficient = 0
+    if "nc_aylien_paragraph2_positive" in parameters.columns:
+        nc_aylien_paragraph2_positive_coefficient = parameters.iloc[0]["nc_aylien_paragraph2_positive"]
+    nltk_combined_negative_coefficient = 0
+    if "nltk_combined_negative" in parameters.columns:
+        nltk_combined_negative_coefficient = parameters.iloc[0]["nltk_combined_negative"]
+    nc_watson_negative_coefficient = 0
+    if "nc_watson_negative" in parameters.columns:
+        nc_watson_negative_coefficient = parameters.iloc[0]["nc_watson_negative"]
+    nc_nltk_title_negative_coefficient = 0
+    if "nc_nltk_title_negative" in parameters.columns:
+        nc_nltk_title_negative_coefficient = parameters.iloc[0]["nc_nltk_title_negative"]
+    nc_nltk_paragraph1_negative_coefficient = 0
+    if "nc_nltk_paragraph1_negative" in parameters.columns:
+        nc_nltk_paragraph1_negative_coefficient = parameters.iloc[0]["nc_nltk_paragraph1_negative"]
+    nc_nltk_paragraph2_negative_coefficient = 0
+    if "nc_nltk_paragraph2_negative" in parameters.columns:
+        nc_nltk_paragraph2_negative_coefficient = parameters.iloc[0]["nc_nltk_paragraph2_negative"]
+    nc_aylien_negative_coefficient = 0
+    if "nc_aylien_negative" in parameters.columns:
+        nc_aylien_negative_coefficient = parameters.iloc[0]["nc_aylien_negative"]
+    nc_aylien_title_negative_coefficient = 0
+    if "nc_aylien_title_negative" in parameters.columns:
+        nc_aylien_title_negative_coefficient = parameters.iloc[0]["nc_aylien_title_negative"]
+    nc_aylien_paragraph1_negative_coefficient = 0
+    if "nc_aylien_paragraph1_negative" in parameters.columns:
+        nc_aylien_paragraph1_negative_coefficient = parameters.iloc[0]["nc_aylien_paragraph1_negative"]
+    nc_aylien_paragraph2_negative_coefficient = 0
+    if "nc_aylien_paragraph2_negative" in parameters.columns:
+        nc_aylien_paragraph2_negative_coefficient = parameters.iloc[0]["nc_aylien_paragraph2_negative"]
+    nc_joy_coefficient = 0
+    if "nc_joy" in parameters.columns:
+        nc_joy_coefficient = parameters.iloc[0]["nc_joy"]
+    nc_anger_coefficient = 0
+    if "nc_anger" in parameters.columns:
+        nc_anger_coefficient = parameters.iloc[0]["nc_anger"]
+    nc_fear_coefficient = 0
+    if "nc_fear" in parameters.columns:
+        nc_fear_coefficient = parameters.iloc[0]["nc_fear"]
+    nc_sadness_coefficient = 0
+    if "nc_sadness" in parameters.columns:
+        nc_sadness_coefficient = parameters.iloc[0]["nc_sadness"]
+    nc_disgust_coefficient = 0
+    if "nc_disgust" in parameters.columns:
+        nc_disgust_coefficient = parameters.iloc[0]["nc_disgust"]
     
     # Calculate predicted score
-    predicted_score= intercept + nltk_combined_sentiment_coefficient*nltk_combined_sentiment + \
-        sadness_coefficient*sadness + \
-        nltk_combined_paragraph2_coefficient*(nltk_combined_sentiment-nltk_paragraph2_sentiment) + \
-        nltk_combined_title_coefficient*(nltk_combined_sentiment-nltk_title_sentiment)
+    predicted_score= intercept + nltk_combined_positive_coefficient*nltk_combined_positive + \
+        nc_watson_positive_coefficient*nc_watson_positive + \
+        nc_nltk_title_positive_coefficient*nc_nltk_title_positive + \
+        nc_nltk_paragraph1_positive_coefficient*nc_nltk_paragraph1_positive + \
+        nc_nltk_paragraph2_positive_coefficient*nc_nltk_paragraph2_positive + \
+        nc_aylien_positive_coefficient*nc_aylien_positive + \
+        nc_aylien_title_positive_coefficient*nc_aylien_title_positive + \
+        nc_aylien_paragraph1_positive_coefficient*nc_aylien_paragraph1_positive + \
+        nc_aylien_paragraph2_positive_coefficient*nc_aylien_paragraph2_positive + \
+        nltk_combined_negative_coefficient*nltk_combined_negative + \
+        nc_watson_negative_coefficient*nc_watson_negative + \
+        nc_nltk_title_negative_coefficient*nc_nltk_title_negative + \
+        nc_nltk_paragraph1_negative_coefficient*nc_nltk_paragraph1_negative + \
+        nc_nltk_paragraph2_negative_coefficient*nc_nltk_paragraph2_negative + \
+        nc_aylien_negative_coefficient*nc_aylien_negative + \
+        nc_aylien_title_negative_coefficient*nc_aylien_title_negative + \
+        nc_aylien_paragraph1_negative_coefficient*nc_aylien_paragraph1_negative + \
+        nc_aylien_paragraph2_negative_coefficient*nc_aylien_paragraph2_negative + \
+        nc_joy_coefficient*nc_joy + \
+        nc_anger_coefficient*nc_anger + \
+        nc_fear_coefficient*nc_fear + \
+        nc_sadness_coefficient*nc_sadness + \
+        nc_disgust_coefficient*nc_disgust
     return (predicted_score)
 
 def main():
