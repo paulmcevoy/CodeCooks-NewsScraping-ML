@@ -4,10 +4,9 @@ import re
 import nltk
 import math
 from get_conn_info import get_conn_info
+from get_table_data import get_art_table, get_ent_table, get_ent_norm_table, get_url_table
 
-from get_table_data import get_table_data
-
-df_art_table, df_ent_table, df_ent_table_norm, df_url_table = get_table_data()
+df_art_table = get_art_table()
 #df_table_date = df_art_table[df_art_table.addedon == '18_07_2017']
 #df_table_date = df_table_date[50:150]
 from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
@@ -16,16 +15,8 @@ tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
 sid = SIA()
 import unicodedata
-#for index, row in df_table_date.iterrows():
-    #df_table_date.loc[index, 'cleaned_text'] = re.sub('\\','', row['text']) 
-    #print( df_table_date.loc[index, 'cleaned_text'])
-    #df_table_date.loc[index, 'cleaned_text'] = row['text'] 
-    #df_table_date.loc[index, 'cleaned_text'] = unicodedata.normalize("NFKD", row['text'])
-    #print("Old str:\n {}\n".format(row['text']))
-    #print("New str:\n {}\n".format(new_str))
 
-
-df_table_date_nltk = df_art_table[df_art_table.nltk_sentiment == False]
+df_table_date_nltk = df_art_table.loc[df_art_table.nltk_sentiment == False]
 df_table_date_nltk_set = set(df_table_date_nltk['addedon'])
 
 #print(len(df_art_table))
@@ -34,7 +25,7 @@ print("NLTK sentiment articles to analyse: {}".format(total_articles))
 loop_count = 0
 for date in df_table_date_nltk_set:
     conn, cursor = get_conn_info()
-    df_table_date_nltk_one_day = df_table_date_nltk[(df_table_date_nltk.addedon == date) ] 
+    df_table_date_nltk_one_day = df_table_date_nltk.loc[(df_table_date_nltk.addedon == date) ] 
     
     for index, row in df_table_date_nltk_one_day.iterrows():
         if(loop_count%10 == 0 | loop_count == total_articles):

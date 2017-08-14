@@ -7,12 +7,14 @@ Created on Sun Jul 16 20:23:14 2017
 @author: Paul
 """
 
-from get_table_data import get_table_data
+from get_table_data import get_art_table, get_ent_table, get_ent_norm_table, get_url_table
 import json
 import pandas as pd
 import datetime
 
-df_art_table, df_ent_table, df_ent_table_norm, get_url_table = get_table_data()
+df_art_table = get_art_table()
+df_ent_table = get_ent_table()
+
 from get_conn_info import get_conn_info
 
 # Replaces the key in each (key, value) member of entities by a key in
@@ -106,8 +108,8 @@ print("Normalisation articles to analyse: {}".format(total_articles))
 articles_normed = 0
 for index, row in df_art_ent.iterrows():
     article = row['uniqueid']
-    if(loop_count%100 == 0):
-        print("{} of {} articles processed".format(loop_count, total_articles))
+    #if(loop_count%100 == 0):
+    #    print("{} of {} articles processed".format(loop_count, total_articles))
     df_ents_current = df_ents_full[df_ents_full.article == article]
 
     for index, ent_row in df_ents_current.iterrows():

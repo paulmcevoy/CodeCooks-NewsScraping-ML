@@ -12,6 +12,7 @@ from sumy.nlp.stemmers import Stemmer
 from sumy.utils import get_stop_words
 import pandas.io.sql as sql
 import pandas as pd
+from get_table_data import get_art_table, get_ent_table, get_ent_norm_table, get_url_table
 
 from get_conn_info import get_conn_info
 
@@ -34,9 +35,7 @@ def get_summary(link):
     else:
         return ""
     
-from get_table_data import get_table_data
-
-df_art_table, df_ent_table, df_ent_table_norm, df_url_table = get_table_data()
+df_url_table = get_url_table()
 
 #df_url_table = df_url_table[(df_url_table.addedon == '15_07_2017') ]
 df_url_table = df_url_table[df_url_table.sumanalyzed == False]
