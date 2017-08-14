@@ -451,8 +451,11 @@ def main():
     y = df["mean"]
    
     '''
-    Parsimony in the maximum number of regressors
+    Create set of possible regressor combinations
     ---------------------------------------------
+
+    1. Parsimony in the maximum number of regressors
+       ---------------------------------------------
     
     For the set of regressors, we take the union of k-combinations of the set, 
     where 1 <= k <= max(max_num_regressors,len(regressors))
@@ -464,15 +467,19 @@ def main():
     up the code. With 23 regressors, there are about 8 million possible unique 
     subsets. If we limit subsets to length 11 or less, that cuts it to 
     4 million. With a limit of 8, it is 881,000 – nearly 10 times quicker.
+
+    2. Exlcude specific regressors
+       ---------------------------
+    
+    One may exclude regressors here, if any, with a lot of missing values
+    We didn't include "nc_aylien_positive" and "nc_aylien_negative" for
+    that reason but they could be included in the future depending on the 
+    available data
     ''' 
     max_num_regressors = 10
 
-    # May exclude regressors here, if any, with a lot of missing values
-    # Remove "nc_aylien_positive" and "nc_aylien_negative" from the following
-    # statement if using eval_train.csv
     regressors = powerset_subsets(["nltk_combined_positive",\
     "nltk_combined_negative", "nc_watson_positive", "nc_nltk_title_positive", \
-    "nc_aylien_positive","nc_aylien_negative", \
     "nc_nltk_paragraph1_positive", "nc_nltk_paragraph2_positive", \
     "nc_aylien_title_positive", \
     "nc_aylien_paragraph1_positive", "nc_aylien_paragraph2_positive", \
