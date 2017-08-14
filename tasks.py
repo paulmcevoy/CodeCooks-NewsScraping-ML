@@ -8,6 +8,7 @@ def post_process():
     os.system("python3.6 ./similarity_nltk.py")
     os.system("python3.6 ./normalisation.py")
     os.system("python3.6 ./summ.py")
+    os.system("python3.6 ./top_ents.py")
     os.system("python3.6 ./parse_flags.py")
     os.system("python3.6 ./new_model_data.py")
 #	print("\n-----------------Post processing end-----------------")

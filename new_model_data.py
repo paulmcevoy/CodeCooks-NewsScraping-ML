@@ -36,7 +36,6 @@ for text_weight in text_weights:
 	if new_rmse < best_rmse:
 		best_text_weight = text_weight
 		best_rmse = new_rmse
-
 watson_score_rmse 				= ((df_mod_table_simple_mean.watson_score - df_mod_table_simple_mean.userscore) ** 2).mean() ** .5
 nltk_combined_sentiment_rmse 	= ((df_mod_table_simple_mean.nltk_combined_sentiment - df_mod_table_simple_mean.userscore) ** 2).mean() ** .5
 nltk_title_sentiment_rmse 		= ((df_mod_table_simple_mean.nltk_title_sentiment - df_mod_table_simple_mean.userscore) ** 2).mean() ** .5
