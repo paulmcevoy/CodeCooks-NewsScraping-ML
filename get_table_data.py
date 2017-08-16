@@ -4,6 +4,16 @@ import pandas as pd
 import pandas.io.sql as sql
 from get_conn_info import get_conn_info
 
+"""This file does all the backend extraction to get the following tables as needed
+
+get_art_table       - All the articles and text, mainly used for sentiment scoring
+get_ent_table       - All the entities, used to get top entities and do normalisation
+get_top_ents        - All the entities, but normalised, used to get top entities etc
+
+All functions do some of date conversion at the end and get_art_table adds a length field
+
+"""
+
 def get_art_table():
     conn, cursor = get_conn_info()
     df_art_table = sql.read_sql("SELECT backend_article.uniqueid, \
@@ -111,9 +121,6 @@ def get_top_ents():
     cursor.close()
     conn.close()
     return df_top_ents_table
-
-
-
 
     #print("Text cleaned and dates converted")
     #print("Done with DB, number of articles: {}".format(len(df_art_table)))

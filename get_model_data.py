@@ -3,10 +3,8 @@ import psycopg2
 import pandas as pd
 import pandas.io.sql as sql
 from get_conn_info import get_conn_info
-#from sentiment_process_aylien import get_aylien
-from collections import  defaultdict
-import numpy as np
 
+#Gets all the latest user ratings and the model score
 
 def get_mod_data():
     conn, cursor = get_conn_info()
@@ -36,49 +34,9 @@ def get_mod_data():
 where backend_randomarticleuserrating.uniqueid_id = backend_sentiment.article AND backend_randomarticleuserrating.uniqueid_id = backend_emotion.article;""", conn)  
     cursor.close()
     conn.close()
+    #Two versions of the tables are returned. A full one and one where the articles goruped by the mean of the user rating
     df_mod_table_simple = df_mod_table[['articleid', 'watson_score', 'nltk_combined_sentiment', 'nltk_title_sentiment','model_score', 'userscore']]
     df_mod_table_simple_mean = pd.DataFrame(df_mod_table_simple.groupby(['articleid', 'watson_score', 'nltk_combined_sentiment','nltk_title_sentiment', 'model_score'],as_index=False)['userscore'].mean())
 
     return df_mod_table, df_mod_table_simple_mean
 
-
-#df_rand_table = get_rand_data()
-df_mod_table, df_mod_table_simple_mean = get_mod_data()
-df_mod_table.to_csv('df_mod_table.csv')
-
-
-#uniqueid_list = df_mod2_table.uniqueid.tolist()
-#uniqueid_list_set = set(uniqueid_list)
-#df_rand_table_sample_full = pd.DataFrame()
-"""
-
-for eachid in uniqueid_list:
-    #print(eachid)
-    df_rand_table_sample = df_rand_table[(df_rand_table.uniqueid == str(eachid)) ] 
-    df_rand_table_sample_full = df_rand_table_sample_full.append(df_rand_table_sample)
-
-df_rand_table_sample_full_cut = df_rand_table_sample_full[df_rand_table_sample_full.sentiment_analyzed == True]
-#df_mod_table = df_mod_table[df_mod_table.aylien_sentiment_adv == False]
-
-
-df_rand_table_sample_full = df_rand_table_sample_full.drop('text',1)
-df_rand_table_sample_full.to_csv('df_rand_table_sample_full_cut.csv')
-
-#get_aylien(df_rand_table_sample_full_cut)
-"""
-
-#for index, row in df_mod_table_simple_mean.iterrows():
-    #print(row['watson_score'])
-"""
-if (row['watson_score'] < 0): #both neg
-    new_score = (0.7*row['watson_score'] + 0.3*row['nltk_title_sentiment'])/2
-elif (row['nltk_combined_sentiment'] > 0 and row['watson_score'] > 0):
-    new_score = (0.7*row['watson_score'] + 0.3*row['nltk_title_sentiment'])/2
-else:
-    new_score = (0.7* ((row['watson_score'] + row['nltk_title_sentiment'])/2)    +   0.3*row['nltk_title_sentiment']) /2
-print(index, new_score)
-df_mod_table_simple_mean.loc[index, 'new_score'] = new_score
-"""
-df_mod_table_simple_mean.to_csv('df_mod_table_simple_mean.csv')
-
-#df_mod_table_simple.to_csv('df_mod_table_simple.csv')

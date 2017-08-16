@@ -4,7 +4,15 @@ from get_model_data import get_mod_data
 from get_table_data import get_art_table, get_ent_table, get_ent_norm_table, get_url_table
 """
 This file gets all the user ratings from the evaluation site and calculates the best weighting
-for the headline and content based on the RMSE
+for the headline and content based on the RMSE, then sends the new model score to the DB
+
+The main arguments for this task are
+
+uniqueid                	- unique article ID
+nltk_combined_sentiment    	- NLTK content text sentiment
+nltk_title_sentiment     	- NLTK content text sentiment
+watson_score   				- Watson Score
+
 """
 
 #get the table data

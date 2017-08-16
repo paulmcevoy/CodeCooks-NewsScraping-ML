@@ -6,6 +6,8 @@ BROKER_URL='amqp://'
 CELERY_RESULT_BACKEND = "amqp"
 CELERY_IMPORTS=("tasks",)
 
+#Config file to run all the post-processing every 30 mins
+
 from celery.schedules import crontab
  
 CELERYBEAT_SCHEDULE = {
