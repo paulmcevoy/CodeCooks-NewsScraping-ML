@@ -9,9 +9,9 @@ CELERY_IMPORTS=("tasks",)
 from celery.schedules import crontab
  
 CELERYBEAT_SCHEDULE = {
-    'every-10mins': {
+    'every-30mins': {
         'task': 'tasks.post_process',
-        'schedule': crontab(minute='*/10'),
+        'schedule': crontab(minute='*/30'),
         #'args': (1,2),
     },
 }
