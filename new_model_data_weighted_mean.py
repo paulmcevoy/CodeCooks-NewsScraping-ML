@@ -1,10 +1,19 @@
 #!/usr/bin/python
-import psycopg2
-import pandas as pd
-import pandas.io.sql as sql
 from get_conn_info import get_conn_info
 from get_model_data import get_mod_data
 from get_table_data import get_art_table, get_ent_table, get_ent_norm_table, get_url_table
+"""
+This file gets all the user ratings from the evaluation site and calculates the best weighting
+for the headline and content based on the RMSE, then sends the new model score to the DB
+
+The main arguments for this task are
+
+uniqueid                	- unique article ID
+nltk_combined_sentiment    	- NLTK content text sentiment
+nltk_title_sentiment     	- NLTK content text sentiment
+watson_score   				- Watson Score
+
+"""
 
 #get the table data
 df_art_table = get_art_table()
@@ -21,7 +30,11 @@ best_text_weight = 0
 #loop through all weight ranges
 for text_weight in text_weights:
 	title_weight = 1 - 	text_weight
-
+	#From the ground truth it was determined that Watson is better at predicting a negative score
+	#NLTK is better at getting a positive score correct
+	#Here we check both Watson and NLTK agree on the sentiment polarity
+	#If they are both negative then take Watson's score, if both positive then we take NLTK
+	#If they disagree then we split the difference
 	for index, row in df_mod_table_simple_mean.iterrows():
 	    if (row['nltk_combined_sentiment'] < 0 and row['watson_score'] < 0):
 	        new_score = (text_weight*row['watson_score'] + title_weight*row['nltk_title_sentiment'])/2
@@ -29,13 +42,18 @@ for text_weight in text_weights:
 	        new_score = (text_weight*row['nltk_combined_sentiment'] + title_weight*row['nltk_title_sentiment'])/2
 	    else:
 	        new_score = (text_weight* ((row['watson_score'] + row['nltk_title_sentiment'])/2)    +   title_weight*row['nltk_title_sentiment']) /2
+	    #Add this new score to the table
 	    df_mod_table_simple_mean.loc[index,'new_score'] = new_score
-
+    
+    #RMSE is the square root of the mean/average of the square of all of the errors.
 	new_rmse = ((df_mod_table_simple_mean.new_score - df_mod_table_simple_mean.userscore) ** 2).mean() ** .5
+	
 	#print(text_weight, title_weight, new_rmse)
+	#if the new score is better than the old one then keep it and the weight
 	if new_rmse < best_rmse:
 		best_text_weight = text_weight
 		best_rmse = new_rmse
+
 watson_score_rmse 				= ((df_mod_table_simple_mean.watson_score - df_mod_table_simple_mean.userscore) ** 2).mean() ** .5
 nltk_combined_sentiment_rmse 	= ((df_mod_table_simple_mean.nltk_combined_sentiment - df_mod_table_simple_mean.userscore) ** 2).mean() ** .5
 nltk_title_sentiment_rmse 		= ((df_mod_table_simple_mean.nltk_title_sentiment - df_mod_table_simple_mean.userscore) ** 2).mean() ** .5
@@ -46,6 +64,8 @@ print("NLTK text RMSE {0:.3f}".format(nltk_combined_sentiment_rmse))
 print("NLTK title RMSE {0:.3f}".format(nltk_title_sentiment_rmse))
 
 best_title_weight = 1 - best_text_weight
+
+#send all the new data to the DB
 conn, cursor = get_conn_info()
 print("Sending (Weighted) model data to DB... ")
 for index, row in df_mod_table_full.iterrows():

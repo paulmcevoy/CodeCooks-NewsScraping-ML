@@ -7,7 +7,7 @@ Created on Sun Jul 16 20:23:14 2017
 @author: Paul
 """
 
-from get_table_data import get_art_table, get_ent_table, get_ent_norm_table, get_url_table
+from get_table_data import get_art_table, get_ent_table, get_url_table
 import json
 import pandas as pd
 import datetime
