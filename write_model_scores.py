@@ -199,17 +199,6 @@ def score(row, parameters):
     nc_sadness = nltk_combined_negative-sadness
     nc_disgust = nltk_combined_negative-disgust
     
-    "nltk_combined_positive","nltk_combined_negative", \
-    "nc_watson_positive", "nc_nltk_title_positive", \
-    "nc_nltk_paragraph1_positive", "nc_nltk_paragraph2_positive", \
-    "nc_aylien_positive","nc_aylien_title_positive", \
-    "nc_aylien_paragraph1_positive", "nc_aylien_paragraph2_positive","nc_joy", \
-    "nc_watson_negative","nc_nltk_title_negative","nc_nltk_paragraph1_negative", \
-    "nc_nltk_paragraph2_negative","nc_aylien_negative", \
-    "nc_aylien_title_negative", "nc_aylien_paragraph1_negative", \
-    "nc_aylien_paragraph2_negative","nc_anger", "nc_fear","nc_sadness", \
-    "nc_disgust"
-        
     '''
     Extract coefficients from file
     ------------------------------
@@ -350,7 +339,8 @@ def main():
             disgust,
             fear, 
             joy, 
-            sadness
+            sadness,
+            model_score
             FROM 
             backend_sentiment, backend_emotion 
             WHERE 
@@ -374,39 +364,44 @@ def main():
     # put query results in a panda data frame as in https://gist.github.com/mvaz/2006493
     x = pd.DataFrame( rows, columns=names)
 
-    
+    # Read model from file
     parameters = pd.read_csv("parameters.csv", index_col=False)
-    x["model_score"] = x.apply (lambda row: score(row, parameters),axis=1)
+    
+    # Calculate (new) model scores
+    x["new_model_score"] = x.apply (lambda row: score(row, parameters),axis=1)
     print(x.head())
 
-    # Calculate model score and update backend_sentiment table
-
+    # Update backend_sentiment table with new model scores if different
     for row in rows:
 
         #print("\n" + row[0] + "\n")
 
         article = row[0]
-        m_score = x.loc[x['article'] == article, 'model_score'].iloc[0]
+        new_score = x.loc[x['article'] == article, 'new_model_score'].iloc[0]
+        old_score = x.loc[x['article'] == article, 'model_score'].iloc[0]
         #print(m_score)
-        if m_score is not(None):
-            sql = "UPDATE backend_sentiment SET model_score = %f WHERE article = '%s';" % (m_score, article)
-            sql2 = "UPDATE backend_article SET modelprocessed = true WHERE uniqueid = '%s';" % article
+        
+        #if m_score is valid and different to the old model_score
+        if isinstance(new_score, numbers.Number):
+            if not(np.isclose(new_score, old_score, atol=1e-05)): 
+                sql = "UPDATE backend_sentiment SET model_score = %f WHERE article = '%s';" % (new_score, article)
+                sql2 = "UPDATE backend_article SET modelprocessed = true WHERE uniqueid = '%s';" % article
 
-        try:
+                try:
 
-            curs.execute(sql)
-            curs.execute(sql2)
-            
-            conn.commit()
+                    curs.execute(sql)
+                    curs.execute(sql2)
 
-            #print("Model score data entry succeeded for"), row
+                    conn.commit()
 
-        except psycopg2.DatabaseError, e:
+                    #print("Model score data entry succeeded for"), row
 
-            print 'Error %s' % e    
+                except psycopg2.DatabaseError, e:
 
-            sys.exit(1)
-    
+                    print 'Error %s' % e    
+
+                    sys.exit(1)
+
     # Close the connection when done
     if conn is not None:
         conn.close()
