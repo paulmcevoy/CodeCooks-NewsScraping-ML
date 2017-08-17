@@ -14,7 +14,7 @@ In summary the following steps are carried out at configurable intervals (defaul
 5. Summarisation (summ.py)
 6. Top Entities (top_ents.py)
 7. Parse flags (parse_flags.py)
-8. Update model scores
+8. Update model scores (new_model_data_weighted_mean.py)
 
 
 1. **Entity Normalisation** (normalisation.py)
