@@ -11,6 +11,13 @@ from nltk import tokenize
 
 """This file gets all of the advanced sentiment info like heading, paragraph etc
 
+The program carries out the following steps:
+1. Gets the article data from the DB
+2. Gets articles after 31st July, due to Unit limits
+3. Gets articles that have not been analyzed yet
+4. Splits the articles into 1st and 2nd half using NLTK tokenizer
+5. Gets the sentiment polarity and confidence from Aylien for Title, 1st and 2nd sections
+
 The main arguments for this function is
 
 uniqueid                - unique article ID
@@ -87,7 +94,7 @@ def get_aylien(df_sample):
 df_art_table = get_art_table()
 
 #We decided to starting getting advanced sentiment detail at the end of July
-#We wouldn't have enough units to back and get Aylien info for all older articles
+#We wouldn't have enough units to go back and get Aylien info for all older articles
 #only get Aylien data after this date due to limits
 adate = datetime.date(2017, 7, 31)
 df_table_date = df_art_table[df_art_table.addedonpy > adate]

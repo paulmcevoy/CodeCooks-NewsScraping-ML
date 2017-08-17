@@ -4,6 +4,11 @@ import pandas as pd
 import pandas.io.sql as sql
 from get_conn_info import get_conn_info
 
+"""
+This program checks the flags set for the sentiment scores and sets an overall flag 'sentiment_analyzed' that
+indicates that article has been fully analyzed and is ready to display
+"""
+
 def get_flag_data():
     conn, cursor = get_conn_info()
 
@@ -13,7 +18,6 @@ def get_flag_data():
                             backend_article.nltk_sentiment, \
                             backend_article.aylien_sentiment_adv \
                             FROM backend_article;", conn)  
-
 
     cursor.close()
     conn.close()

@@ -7,15 +7,25 @@ Created on Sun Jul 16 20:23:14 2017
 @author: Paul
 """
 
+"""
+This file carries out the following steps:
+1. Extracts all the articles from today, just to reduce overhead
+2. For each article it extracts the (un-normalised) entities already set from WatsonAPI
+3. These entities are then renamed if they have a 'key' value from the JSON list
+4. Any duplicates are removed and scores are combined where necessary, more detail below
+5. Finally the normalised entities are sent back to the DB with linked to the article they relate to
+
+"""
+
 from get_table_data import get_art_table, get_ent_table, get_url_table
 import json
 import pandas as pd
 import datetime
+from collections import  defaultdict
+from get_conn_info import get_conn_info
 
 df_art_table = get_art_table()
 df_ent_table = get_ent_table()
-
-from get_conn_info import get_conn_info
 
 # Replaces the key in each (key, value) member of entities by a key in
 # common_entities if the entities key is a member of the values corresponding
@@ -69,30 +79,42 @@ def removeDuplicateEntities(entities, common_entities):
 with open('common_entities.json', 'r') as f:
     common_entities = json.load(f)
 
-from collections import  defaultdict
-df_ents_current_dict = defaultdict(dict)
-df_ents_cut_current_article_dict = defaultdict(dict)
 df_ents_full = pd.DataFrame()
 df_ents_current = pd.DataFrame()
  
-#df_ent_table_date = df_ent_table[(df_ent_table.addedon == '15_07_2017') ]
 todays_date =  datetime.date.today()
 df_ent_table_date = df_ent_table[df_ent_table.addedondt == todays_date]
-#df_ent_table_date = df_ent_table
 
 df_ents_cut =  df_ent_table_date.loc[:,['article','score','name']]
 
 for article in df_ents_cut.article.unique():
     #get it into a format that renameEntities and removeDuplicateEntities need
+
+    #This gets all the entities for the current article
     df_ents_cut_current_article = df_ents_cut[(df_ents_cut.article == article) ]
+
+    #just get the name and score
     df_ents_cut_current_article_two = df_ents_cut_current_article.loc[:,['name', 'score']]
+
+    #convert the DF to a list
     entities = df_ents_cut_current_article_two.values.tolist()
 
+    #Do the renaming 
     entities_rename = renameEntities(entities, common_entities)
+
+    #Remove the duplicates
     entities_rename_no_dups = removeDuplicateEntities(entities_rename, common_entities)
+
+    #Convert to a DF
     df_ents = pd.DataFrame(entities_rename_no_dups)
+
+    #Add the column names
     df_ents.columns = ['name', 'score']
+
+    #Add the current article name
     df_ents['article'] = article
+
+    #Append it to the full list
     df_ents_full = df_ents_full.append(df_ents)
 
 df_art_total =  df_art_table.loc[:,['uniqueid','entitynormalized']]
@@ -110,8 +132,11 @@ for index, row in df_art_ent.iterrows():
     article = row['uniqueid']
     #if(loop_count%100 == 0):
     #    print("{} of {} articles processed".format(loop_count, total_articles))
+
+    #We want to extract the entities that relate to this article only
     df_ents_current = df_ents_full[df_ents_full.article == article]
 
+    #For each entity we send it to the DB
     for index, ent_row in df_ents_current.iterrows():
         name = ent_row['name'] 
         score = ent_row['score'] 
