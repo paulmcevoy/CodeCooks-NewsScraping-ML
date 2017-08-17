@@ -1,20 +1,18 @@
 
 # coding: utf-8
-
-# In[32]:
-
-
-# %load connect_select.py
-# %load connect_select.py
-#!/usr/bin/python
 import psycopg2
 import sys
 import pprint
 from datetime import datetime
-
 import pandas.io.sql as sql
 import pandas as pd
 
+"""
+CODE NO LONGER USED. KEPT FOR REFERENCE.
+
+This is the Python file used to do some light analysis on the data
+The code is un-supported now but used for reference
+"""
 
 conn_string = "host='localhost' dbname='newsapp' user='postgres' password='postgres'"
 # print the connection string we will use to connect
@@ -48,24 +46,10 @@ df_table.to_excel(writer, sheet_name='Sheet1')
 # Close the Pandas Excel writer and output the Excel file.
 writer.save()
 
-#records = cursor.fetchall()
-#pprint.pprint(records)
-
- 
-
-
-# In[78]:
-
-
-#print(df_ent_table)
-#df_ent_table.groupby('name').count()
 ent_count_table = df_ent_table.name.value_counts()
 
-#print(type(ent_count_table))
 print(ent_count_table[:15])
-#ent_count_table_df = ent_count_table.to_frame
 print(type(ent_count_table))
-#ent_count_table.style
 
 ent_count_table_df = ent_count_table.to_frame()
 
@@ -75,8 +59,6 @@ ent_count_table_df_top15 = ent_count_table_df[:15]
 
 ent_count_table_df_top15.to_csv('ent_count_table_df_top15.csv')
 
-
-# In[30]:
 
 
 from collections import Counter
@@ -95,8 +77,6 @@ plt.axis('equal')
 plt.show()
 
 
-# In[9]:
-
 
 from collections import defaultdict
 sent_dict = defaultdict(int)
@@ -107,20 +87,12 @@ for source in source_list:
 sent_dict
 
 
-# In[10]:
-
-
 for index, row in df_table.iterrows():
     print (len(row['text']))
 
 
-# In[11]:
-
-
 print(sorted(sent_dict.values()))
 
-
-# In[24]:
 
 
 import matplotlib.pyplot as plt
@@ -133,9 +105,4 @@ fig = plt.gcf()
 fig.set_size_inches(9,9) # or (4,4) or (5,5) or whatever
 plt.show()
 
-
-# In[7]:
-
-
-df_table
 
