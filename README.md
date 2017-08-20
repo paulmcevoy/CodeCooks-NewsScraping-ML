@@ -1,9 +1,28 @@
 # CodeCooks-Repo-ML
 
-Post-processing code
-
+##### What this repo is for:
 
 This repo handles most of the post-processing (including model scoring) done on the articles after they have been scraped
+
+##### Why do we need it:
+
+Gettting the article text and initial sentiment data is only the first step in a sentiment solution for the user.
+We need advanced sentiment information. We also need to find article similarity, summarise and normalise entities.
+Finally we need to determine a new sentiment value using a model
+
+##### What other project resources are important to it:
+
+* PostgreSQL is the main source and destination for the data used in this repo.
+* The data it uses comes from the information [codecooks-watsonapi Repo](https://github.com/ucd-nlmsc-teamproject/codecooks-watsonapi) has sent to the DB.
+* The data it updates to the DB is primarily used by [CodeCooks-DJango Repo](https://github.com/ucd-nlmsc-teamproject/CodeCooks-DJango)
+
+### Resources use for this repo:
+
+ * [NLTK-Vader](https://github.com/cjhutto/vaderSentiment) for NLTK sentiment analysis
+ * [Sumy](https://pypi.python.org/pypi/sumy) for article summarisation
+ * [Aylien API](https://developer.aylien.com/getting-started/python) for sentiment more analysis
+ * [Celery](http://www.celeryproject.org/) for job scheduling
+ * [psycopg]( http://initd.org/psycopg/) for SQL requests, updates and inserts
 
 In summary the following steps are carried out at configurable intervals (defaulted to 30 minutes):
 
@@ -81,6 +100,7 @@ In summary the following steps are carried out at configurable intervals (defaul
        If there is negative agreement Watson score is used
        If there is no agreement then the mean of the scores is used
     2. Final score is the mean of 30% the NLTK on the Title and 70% the score from #2
+
 
 ```
 
