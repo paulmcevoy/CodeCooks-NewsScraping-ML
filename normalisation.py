@@ -16,16 +16,13 @@ This file carries out the following steps:
 5. Finally the normalised entities are sent back to the DB with linked to the article they relate to
 
 """
-
+import pandas.io.sql as sql
 from get_table_data import get_art_table, get_ent_table, get_url_table
 import json
 import pandas as pd
 import datetime
 from collections import  defaultdict
 from get_conn_info import get_conn_info
-
-df_art_table = get_art_table()
-df_ent_table = get_ent_table()
 
 # Replaces the key in each (key, value) member of entities by a key in
 # common_entities if the entities key is a member of the values corresponding
@@ -79,13 +76,17 @@ def removeDuplicateEntities(entities, common_entities):
 with open('common_entities.json', 'r') as f:
     common_entities = json.load(f)
 
-df_ents_full = pd.DataFrame()
+df_ents_full = pd.DataFrame(columns = ['name', 'score', 'article'])
+#df_ents_full.columns = ['name', 'score', 'article']
 df_ents_current = pd.DataFrame()
+conn, cursor = get_conn_info()
+df_ent_table_date = sql.read_sql("select * from backend_entities where article in (select uniqueid from backend_article where entitynormalized = 'False');", conn)
+cursor.close()
+conn.close()
  
-todays_date =  datetime.date.today()
-df_ent_table_date = df_ent_table[df_ent_table.addedondt == todays_date]
 
 df_ents_cut =  df_ent_table_date.loc[:,['article','score','name']]
+df_ents_arts =  df_ent_table_date.loc[:,['article']]
 
 for article in df_ents_cut.article.unique():
     #get it into a format that renameEntities and removeDuplicateEntities need
@@ -117,24 +118,15 @@ for article in df_ents_cut.article.unique():
     #Append it to the full list
     df_ents_full = df_ents_full.append(df_ents)
 
-df_art_total =  df_art_table.loc[:,['uniqueid','entitynormalized']]
-df_art_ent = df_art_total[df_art_total.entitynormalized == False]
 
-conn, cursor = get_conn_info()
-#df_art_ent = df_art_ent[:50]
-loop_count = 0
-total_articles = len(df_art_ent)
+total_articles = len(df_ents_arts['article'].unique())
 #print("Normalisation articles to analyse: {}  {}".format(total_articles), datetime.datetime.now())
 print("Normalisation articles to analyse: {}".format(total_articles))
-
 articles_normed = 0
-for index, row in df_art_ent.iterrows():
-    article = row['uniqueid']
-    #if(loop_count%100 == 0):
-    #    print("{} of {} articles processed".format(loop_count, total_articles))
-
+conn, cursor = get_conn_info()
+for article in df_ents_arts['article'].unique():
     #We want to extract the entities that relate to this article only
-    df_ents_current = df_ents_full[df_ents_full.article == article]
+    df_ents_current = df_ent_table_date[df_ent_table_date.article == article]
 
     #For each entity we send it to the DB
     for index, ent_row in df_ents_current.iterrows():
@@ -144,10 +136,9 @@ for index, row in df_art_ent.iterrows():
         cursor.execute("INSERT INTO backend_entitiesnormalized (article, name, score) VALUES (%s, %s, %s)", (article, name, score))
     cursor.execute(" update backend_article set entitynormalized = (%s) where uniqueid =  (%s) ;", (True, article,))
     articles_normed+=1
-    loop_count+=1
 
 print("{} articles normalised".format(articles_normed))
-        
+     
 conn.commit()
 cursor.close()
 
