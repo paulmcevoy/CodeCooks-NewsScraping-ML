@@ -101,6 +101,15 @@ In summary the following steps are carried out at configurable intervals (defaul
        If there is no agreement then the mean of the scores is used
     2. Final score is the mean of 30% the NLTK on the Title and 70% the score from #2
 
+##### Celery
+
+Once the code is cloned to kick off celery the following command is all that is needed:
+
+```
+celery worker -l info --beat -f celery_log_$(date +"%m-%d-%Y_%H-%M").log
+```
+
+
 
 ```
 
