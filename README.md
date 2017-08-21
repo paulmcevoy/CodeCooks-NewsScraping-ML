@@ -101,6 +101,24 @@ In summary the following steps are carried out at configurable intervals (defaul
        If there is no agreement then the mean of the scores is used
     2. Final score is the mean of 30% the NLTK on the Title and 70% the score from #2
 
+#### Linear regression model 
+
+The code to evaluate the linear regression model takes a set of training data and outputs a linear regression model based on that data with a maximum adjusted R-squared, given the constraints in the code to ensure parsimony (see comments in the code). Based on the available ground truth data, we obtained the following model:
+
+```
+0.3723 + 0.7703*nltk_combined_negative + 0.6497*nc_nltk_paragraph2_positive + 0.2601*nc_joy - 0.3290*nc_nltk_title_negative + 0.1307*nc_aylien_paragraph2_negative + 0.5827*nc_sadness
+```
+
+This can be converted to the non-orthogonal linear formula:
+
+```
+0.3723 + 1.1546*nltk_combined_negative + 0.9098*nltk_combined_positive - 0.6497*nltk_paragraph2_positive - 0.2601*joy + 0.3290*nltk_title_negative - 0.1307*aylien_paragraph2_negative - 0.5827*sadness
+```
+
+So, NLTK whole article sentiment (positive and negative) contributed most to the current model, followed by NLTK for the 2nd half of an article, Watson sadness, and the NLTK headline sentiment.
+
+
+
 ##### Celery
 
 Once the code is cloned to kick off celery the following command is all that is needed:
