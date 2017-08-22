@@ -24,6 +24,8 @@ Finally we need to determine a new sentiment value using a model
  * [Celery](http://www.celeryproject.org/) for job scheduling
  * [psycopg]( http://initd.org/psycopg/) for SQL requests, updates and inserts
 
+Note: All of the Python in this repository was developed in **Python3.6**
+
 In summary the following steps are carried out at configurable intervals (defaulted to 30 minutes):
 
 	1. Entity Normalisation (normalisation.py)
