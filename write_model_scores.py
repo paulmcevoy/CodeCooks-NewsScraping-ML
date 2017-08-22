@@ -350,8 +350,10 @@ def main():
         conn.commit()
 
     # print error if query is not executed successfully.
-    except psycopg2.DatabaseError, e:
-        print 'Error %s' % e    
+    except psycopg2.DatabaseError as e:
+#        print 'Error %s' % e    
+        print ("Error {}".format(e))    
+
         sys.exit(1)
     
     # retrun headers
@@ -396,9 +398,10 @@ def main():
 
                     #print("Model score data entry succeeded for"), row
 
-                except psycopg2.DatabaseError, e:
+                except psycopg2.DatabaseError as e:
 
-                    print 'Error %s' % e    
+                    #print 'Error %s' % e    
+                    print ("Error {}".format(e))    
 
                     sys.exit(1)
 
